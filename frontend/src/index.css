@@ -1,0 +1,9 @@
+@import "tailwindcss";
+
+:root {
+  font-family: "Montserrat", system-ui, Avenir, Helvetica, Arial, sans-serif;
+}
+
+.hero-bg {
+  background: linear-gradient(180deg, rgba(101, 141, 255, 0.06), rgba(101, 141, 255, 0.02));
+}
