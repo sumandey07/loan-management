@@ -43,7 +43,7 @@ export default function Navbar() {
 
   if (isAdminView) {
     return (
-      <nav className="w-full bg-linear-to-r from-orange-400 to-amber-600 text-white shadow-md z-40 fixed top-0 left-0">
+      <nav className="w-full bg-linear-to-r from-amber-300 to-amber-600 text-white z-40 fixed top-0 left-0">
         <div className="max-w-7xl mx-auto flex justify-between py-3">
           {/* LEFT: brand */}
           <div className="flex items-center gap-2">
@@ -67,7 +67,7 @@ export default function Navbar() {
   }
 
   return (
-    <nav className="w-full bg-linear-to-r from-orange-400 to-amber-600 text-white shadow-md z-40 fixed top-0 left-0">
+    <nav className="w-full bg-linear-to-r from-amber-300 to-amber-600 text-white z-40 fixed top-0 left-0">
       <div className="max-w-6xl mx-auto flex items-center justify-between px-4 py-3">
         <div className="flex items-center gap-2">
           <img src="./src/assets/mortgage.png" alt="logo" className="w-7" />

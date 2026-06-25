@@ -146,7 +146,7 @@ export default function UploadDocument() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-r from-orange-300 to-amber-700 flex items-center justify-center px-4 py-10">
+    <div className="min-h-screen bg-gradient-to-r from-orange-300 to-amber-700 flex items-center justify-center px-4 py-10 mt-12">
       <div className="bg-white rounded-3xl shadow-2xl max-w-4xl w-full overflow-hidden">
         <div className="bg-black px-8 py-6 text-white">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

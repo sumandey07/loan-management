@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
+import { toast } from "sonner";
+import { LockKeyhole } from "lucide-react";
 
 export default function AdminDashboardPage() {
   const token = localStorage.getItem("admin_token");
@@ -6,9 +8,12 @@ export default function AdminDashboardPage() {
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  if (!token) window.location.href = "/admin";
-
   useEffect(() => {
+    if (!token) {
+      window.location.href = "/admin";
+      return;
+    }
+
     async function loadData() {
       const custRes = await fetch("http://localhost:8000/admin/customers", {
         headers: { Authorization: `Bearer ${token}` },
@@ -20,8 +25,8 @@ export default function AdminDashboardPage() {
       });
       const appData = await appRes.json();
 
-      setCustomers(custData.customers);
-      setApplications(appData.applications);
+      setCustomers(custData.customers || []);
+      setApplications(appData.applications || []);
       setLoading(false);
     }
 
@@ -38,118 +43,178 @@ export default function AdminDashboardPage() {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
         body: fd,
-      }
+      },
     );
 
-    toast.info(`Application ${status}!`);
+    toast.success(`Application ${status}`);
     window.location.reload();
   };
 
   if (loading)
     return (
-      <div className="min-h-screen flex justify-center items-center text-xl text-gray-700">
-        Loading admin panel...
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-orange-300 to-amber-700 text-white">
+        <div className="rounded-[28px] border border-slate-200 bg-white px-8 py-6 text-lg shadow-xl text-slate-900">
+          Loading admin panel...
+        </div>
       </div>
     );
 
+  const submittedCount = applications.filter(
+    (app) => app.status === "submitted",
+  ).length;
+
   return (
-    <div className="min-h-screen bg-gray-100 p-10">
-      <h1 className="text-4xl font-bold mb-6 text-gray-800 mt-10">
-        Admin Dashboard
-      </h1>
-
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-        <div className="bg-white p-6 rounded-xl shadow-lg border-l-4 border-blue-500">
-          <h2 className="text-gray-500">Total Customers</h2>
-          <p className="text-3xl font-bold">{customers.length}</p>
+    <div className="min-h-screen bg-gradient-to-r from-orange-500 to-amber-800 mt-12">
+      <div className="mx-auto max-w-7xl px-6 py-10 lg:px-8">
+        <div className="mb-10 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <div>
+            <p className="text-sm uppercase tracking-[0.32em] text-neutral-900">
+              Admin Dashboard
+            </p>
+            <h1 className="mt-3 text-4xl text-white font-semibold tracking-tight">
+              Loan Application Management
+            </h1>
+            <p className="mt-3 max-w-4xl text-gray-100">
+              Review active customers, pending applications, and take action
+              with a clear, minimalist dashboard.
+            </p>
+          </div>
+          <div className="rounded-full border border-slate-200 justify-center items-center flex flex-row font-bold bg-green-100 select-none px-4 py-2 text-sm text-green-500 shadow-lg">
+            <LockKeyhole className="inline-block h-4 w-4 mr-2 font-bold" />
+            Secure Admin View
+          </div>
         </div>
 
-        <div className="bg-white p-6 rounded-xl shadow-lg border-l-4 border-green-500">
-          <h2 className="text-gray-500">Applications</h2>
-          <p className="text-3xl font-bold">{applications.length}</p>
+        <div className="grid gap-4 sm:grid-cols-3 mb-10">
+          <div className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-lg text-slate-900">
+            <p className="text-sm uppercase tracking-[0.28em] font-semibold text-amber-600">
+              Customers
+            </p>
+            <p className="mt-4 text-3xl font-semibold">{customers.length}</p>
+            <p className="mt-2 text-sm text-slate-600">
+              Active customer accounts
+            </p>
+          </div>
+          <div className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-lg text-slate-900">
+            <p className="text-sm uppercase tracking-[0.28em] font-semibold text-amber-600">
+              Applications
+            </p>
+            <p className="mt-4 text-3xl font-semibold">{applications.length}</p>
+            <p className="mt-2 text-sm text-slate-600">Total loan requests</p>
+          </div>
+          <div className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-lg text-slate-900">
+            <p className="text-sm uppercase tracking-[0.28em] font-semibold text-amber-600">
+              Pending
+            </p>
+            <p className="mt-4 text-3xl font-semibold">{submittedCount}</p>
+            <p className="mt-2 text-sm text-slate-600">Awaiting review</p>
+          </div>
         </div>
 
-        <div className="bg-white p-6 rounded-xl shadow-lg border-l-4 border-amber-500">
-          <h2 className="text-gray-500">Pending Approval</h2>
-          <p className="text-3xl font-bold">
-            {applications.filter((a) => a.status === "submitted").length}
-          </p>
+        <div className="grid gap-6 xl:grid-cols-[1.35fr_0.85fr]">
+          <section className="rounded-[32px] border border-slate-200 bg-white pt-9 pb-11 px-10 shadow-xl text-slate-900">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <h2 className="text-xl font-semibold">Loan Applications</h2>
+                <p className="mt-2 text-sm text-slate-600">
+                  Review and manage submitted loan applications
+                </p>
+              </div>
+              <span className="rounded-full bg-slate-900 px-4 py-1 text-xs uppercase tracking-[0.24em] font-semibold text-slate-100">
+                {applications.length} total
+              </span>
+            </div>
+
+            <div className="mt-6 overflow-x-auto overflow-y-auto max-h-[200px] pl-2 pr-6">
+              <table className="min-w-full text-left text-sm text-slate-200">
+                <thead className="sticky top-0 backdrop-blur-md">
+                  <tr className="border-b border-slate-200 text-slate-500">
+                    <th className="py-3 pr-4">App ID</th>
+                    <th className="py-3 pr-4">User</th>
+                    <th className="py-3 pr-4">Amount</th>
+                    <th className="py-3 pr-4">Status</th>
+                    <th className="py-3 text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {applications.map((app) => (
+                    <tr
+                      key={app.id}
+                      className="border-b border-white/5 last:border-b-0">
+                      <td className="py-4 pr-4 font-medium text-slate-900">
+                        {app.id}
+                      </td>
+                      <td className="py-4 pr-4 text-slate-600">
+                        {app.user_id}
+                      </td>
+                      <td className="py-4 pr-4 text-slate-600">
+                        ₹ {Number(app.requested_amount).toLocaleString()}
+                      </td>
+                      <td className="py-4 pr-4">
+                        <span
+                          className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${app.status === "submitted" ? "bg-teal-200 text-teal-800" : "bg-amber-200 text-amber-800"}`}>
+                          {app.status}
+                        </span>
+                      </td>
+                      <td className="py-4 text-right">
+                        {app.status === "submitted" ? (
+                          <div className="inline-flex gap-2">
+                            <button
+                              onClick={() => updateStatus(app.id, "approved")}
+                              className="rounded-full bg-emerald-500 px-3 py-2 text-xs font-semibold text-slate-950 transition hover:bg-emerald-400">
+                              Approve
+                            </button>
+                            <button
+                              onClick={() => updateStatus(app.id, "rejected")}
+                              className="rounded-full bg-red-500 px-3 py-2 text-xs font-semibold text-white transition hover:bg-red-400">
+                              Reject
+                            </button>
+                          </div>
+                        ) : (
+                          <span className="text-slate-400 text-xs italic">
+                            Completed
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section className="rounded-[32px] border border-slate-200 bg-white pt-8 pb-10 px-9 shadow-xl text-slate-900">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <h2 className="text-xl font-semibold">Customer Snapshot</h2>
+                <p className="mt-2 text-sm text-slate-600">
+                  Overview of registered customers
+                </p>
+              </div>
+              <span className="rounded-full bg-slate-900 px-4 py-1 text-xs uppercase font-semibold text-slate-100">
+                {customers.length}
+              </span>
+            </div>
+
+            <div className="mt-6 space-y-3 max-h-[200px] overflow-y-auto pr-1">
+              {customers.map((customer) => (
+                <div
+                  key={customer.id}
+                  className="rounded-3xl border border-slate-400 bg-white p-4 text-slate-900">
+                  <p className="font-semibold">
+                    {customer.full_name || "Unknown customer"}
+                  </p>
+                  <p className="mt-1 text-sm text-slate-600">
+                    Username: {customer.username}
+                  </p>
+                  <p className="mt-1 text-sm text-slate-600">
+                    Phone: {customer.phone || "N/A"}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </section>
         </div>
-      </div>
-
-      {/* Customers List */}
-      <div className="bg-white p-6 rounded-xl shadow-lg mb-10">
-        <h2 className="text-xl font-semibold mb-4">Customer List</h2>
-        <table className="w-full border-collapse">
-          <thead>
-            <tr className="bg-gray-100 text-left">
-              <th className="p-2">ID</th>
-              <th className="p-2">Name</th>
-              <th className="p-2">Username</th>
-              <th className="p-2">Phone</th>
-            </tr>
-          </thead>
-          <tbody>
-            {customers.map((c) => (
-              <tr key={c.id} className="border-t">
-                <td className="p-2">{c.id}</td>
-                <td className="p-2">{c.full_name || "N/A"}</td>
-                <td className="p-2">{c.username}</td>
-                <td className="p-2">{c.phone || "N/A"}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Applications Table */}
-      <div className="bg-white p-6 rounded-xl shadow-lg">
-        <h2 className="text-xl font-semibold mb-4">Loan Applications</h2>
-        <table className="w-full border-collapse">
-          <thead>
-            <tr className="bg-gray-100 text-left">
-              <th className="p-2">App ID</th>
-              <th className="p-2">User</th>
-              <th className="p-2">Amount</th>
-              <th className="p-2">Status</th>
-              <th className="p-2">Actions</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {applications.map((app) => (
-              <tr key={app.id} className="border-t">
-                <td className="p-2">{app.id}</td>
-                <td className="p-2">{app.user_id}</td>
-                <td className="p-2">
-                  ₹{app.requested_amount.toLocaleString()}
-                </td>
-                <td className="p-2">{app.status}</td>
-
-                <td className="p-2 space-x-2">
-                  {app.status === "submitted" ? (
-                    <>
-                      <button
-                        className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded"
-                        onClick={() => updateStatus(app.id, "approved")}>
-                        Approve
-                      </button>
-
-                      <button
-                        className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded"
-                        onClick={() => updateStatus(app.id, "rejected")}>
-                        Reject
-                      </button>
-                    </>
-                  ) : (
-                    <span className="text-gray-500 italic">Completed</span>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
       </div>
     </div>
   );

@@ -27,11 +27,11 @@ export default function AdminLoginPage() {
     localStorage.setItem("admin_token", data.access_token);
 
     navigate("/admin-dashboard");
-    toast.success("Admin logged in successfully");
+    toast.success("Admin logged In successfully");
   };
 
   return (
-    <div className="min-h-screen flex justify-center items-center bg-gradient-to-r from-gray-800 to-black">
+    <div className="min-h-screen flex justify-center items-center bg-gradient-to-r from-gray-600 to-amber-800">
       <div className="bg-white/10 backdrop-blur-xl p-10 rounded-2xl shadow-2xl w-[420px] text-white border border-white/20">
         <h1 className="text-3xl font-semibold mb-6 text-center">Admin Login</h1>
 

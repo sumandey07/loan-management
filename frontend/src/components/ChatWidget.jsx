@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import ReactMarkdown from "react-markdown";
 import {
   PaperAirplaneIcon,
   ChatBubbleLeftRightIcon,
@@ -66,7 +67,7 @@ export default function ChatWidget() {
         <button
           onClick={() => setOpen(true)}
           className="fixed bottom-6 right-6 bg-sky-700 p-4 rounded-full shadow-xl hover:bg-sky-800 transition z-50">
-          <ChatBubbleLeftRightIcon className="w-7 h-7" />
+          <ChatBubbleLeftRightIcon className="w-7 h-7 text-white" />
         </button>
       )}
 
@@ -90,17 +91,48 @@ export default function ChatWidget() {
                   msg.sender === "user" ? "justify-end" : "justify-start"
                 }`}>
                 <div
-                  className={`px-4 py-2 max-w-[75%] rounded-xl shadow ${
+                  className={`px-4 py-2 max-w-[75%] rounded-xl shadow text-sm ${
                     msg.sender === "user"
                       ? "bg-sky-700 text-white rounded-br-none"
                       : "bg-white text-gray-800 border rounded-bl-none"
                   }`}>
-                  {msg.text}
+                  {msg.sender === "bot" ? (
+                    // ✅ Render Markdown for bot messages
+                    <ReactMarkdown
+                      components={{
+                        strong: ({ children }) => (
+                          <strong className="font-semibold text-gray-900">
+                            {children}
+                          </strong>
+                        ),
+                        ol: ({ children }) => (
+                          <ol className="list-decimal list-inside space-y-1 mt-1">
+                            {children}
+                          </ol>
+                        ),
+                        ul: ({ children }) => (
+                          <ul className="list-disc list-inside space-y-1 mt-1">
+                            {children}
+                          </ul>
+                        ),
+                        li: ({ children }) => (
+                          <li className="ml-2">{children}</li>
+                        ),
+                        p: ({ children }) => (
+                          <p className="mb-1 last:mb-0">{children}</p>
+                        ),
+                      }}>
+                      {msg.text}
+                    </ReactMarkdown>
+                  ) : (
+                    // Plain text for user messages
+                    msg.text
+                  )}
                 </div>
               </div>
             ))}
 
-            {loading && <p className="text-sm text-gray-500">Typing...</p>}
+            {loading && <p className="text-sm text-gray-400 px-1">Typing...</p>}
 
             <div ref={bottomRef}></div>
           </div>
@@ -112,7 +144,7 @@ export default function ChatWidget() {
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKey}
               placeholder="Ask something..."
-              className="flex-1 border rounded-xl px-3 py-2"
+              className="flex-1 border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
             />
             <button
               onClick={sendMessage}

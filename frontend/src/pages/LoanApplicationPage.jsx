@@ -38,8 +38,23 @@ export default function LoanApplicationPage() {
   const actionLabel = isEdit ? "Update Application" : "Submit Application";
   const loadingLabel = isEdit ? "Updating..." : "Submitting...";
 
-  const handleCommonChange = (field) => (e) =>
-    setCommonForm((prev) => ({ ...prev, [field]: e.target.value }));
+  const handleCommonChange = (field) => (e) => {
+    const value = e.target.value;
+    if (field === "tenure_years") {
+      if (value === "") {
+        setCommonForm((prev) => ({ ...prev, [field]: "" }));
+        return;
+      }
+
+      const numeric = Number(value);
+      if (Number.isNaN(numeric)) return;
+      const clamped = Math.max(1, Math.min(30, numeric));
+      setCommonForm((prev) => ({ ...prev, [field]: String(clamped) }));
+      return;
+    }
+
+    setCommonForm((prev) => ({ ...prev, [field]: value }));
+  };
   const handlePropertyChange = (field) => (e) =>
     setPropertyForm((prev) => ({ ...prev, [field]: e.target.value }));
   const handleGoldChange = (field) => (e) =>
