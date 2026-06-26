@@ -117,7 +117,7 @@ export default function RegisterPage() {
             {/* Phone */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Phone number
+                Mobile number
               </label>
               <input
                 type="tel"
@@ -129,7 +129,7 @@ export default function RegisterPage() {
                 value={form.phone}
                 onChange={handleChange}
                 className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-amber-500"
-                placeholder="Enter your phone number"
+                placeholder="Enter your government id linked mobile no."
               />
             </div>
 

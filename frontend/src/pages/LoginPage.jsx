@@ -1,7 +1,7 @@
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 import { motion } from "framer-motion";
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuth } from "../context/AuthContext";
 
@@ -11,6 +11,8 @@ export default function LoginPage() {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
   const { login } = useAuth();
+  const location = useLocation();
+  const fromPath = location.state?.from || "/loan-application";
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -37,7 +39,7 @@ export default function LoginPage() {
         name: form.username,
       });
 
-      navigate("/loan-application");
+      navigate(fromPath, { replace: true });
       toast.success("Logged in Successfully");
     } catch (err) {
       setError(err.message);

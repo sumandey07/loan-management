@@ -133,10 +133,10 @@ export default function OfferPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-r from-orange-300 to-amber-700 flex items-center justify-center px-4 py-10 mt-8">
-      <div className="bg-white rounded-3xl shadow-2xl max-w-6xl w-full p-8">
+      <div className="bg-white rounded-3xl shadow-2xl max-w-6xl w-full p-8 h-[36rem] overflow-hidden">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-8">
           <div>
-            <p className="text-xs uppercase tracking-[0.28em] text-slate-500">
+            <p className="text-xs uppercase font-semibold tracking-[0.3em] text-amber-500">
               Offers dashboard
             </p>
             <h1 className="text-3xl font-bold text-gray-900 mt-2">
@@ -151,7 +151,7 @@ export default function OfferPage() {
             onClick={() => navigate("/loan-application")}
             className="cursor-pointer inline-flex items-center gap-2 rounded-full bg-black px-5 py-2 text-sm font-semibold text-white hover:bg-zinc-900 transition">
             <ArrowRight className="h-4 w-4" />
-            Create new application
+            Create New Application
           </button>
         </div>
 
@@ -211,7 +211,7 @@ export default function OfferPage() {
             </div>
           </div>
 
-          <div className="rounded-3xl border border-slate-200 bg-white p-5 max-w-3xl scroll-smooth">
+          <div className="rounded-3xl border border-slate-200 bg-white p-5 w-full h-[25rem] overflow-hidden">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h2 className="text-xl font-semibold text-gray-900">Offers</h2>
@@ -238,13 +238,13 @@ export default function OfferPage() {
                 refresh.
               </div>
             ) : (
-              <div className="mt-6 overflow-x-auto">
-                <div className="grid grid-flow-col auto-cols-[22rem] gap-4">
+              <div className="mt-6 h-[calc(100%-4rem)] overflow-x-auto overflow-y-hidden pb-2">
+                <div className="flex h-full gap-4">
                   {offers.map((offer) => (
                     <motion.div
                       key={offer.offer_id}
                       whileHover={{ y: -3 }}
-                      className="group flex flex-col rounded-3xl border border-slate-200 bg-zinc-950 p-5 text-white shadow-lg">
+                      className="group flex min-w-[20rem] max-w-[20rem] flex-col rounded-3xl border border-slate-200 bg-zinc-950 p-5 text-white shadow-lg">
                       <div className="flex items-center justify-between gap-3">
                         <div>
                           <p className="font-semibold text-lg">

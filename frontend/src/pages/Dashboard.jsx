@@ -52,12 +52,14 @@ export default function Dashboard() {
     fetchData();
   }, [token]);
 
-  const pendingStatuses = new Set([
+  const visibleStatuses = new Set([
+    "draft",
     "submitted",
+    "verification_pending",
     "Approved (Pending Physical Verification)",
   ]);
 
-  const pendingApps = apps.filter((a) => pendingStatuses.has(a.status || ""));
+  const pendingApps = apps.filter((a) => visibleStatuses.has(a.status || ""));
 
   const handleOffers = (appId) => {
     saveCurrentAppId(appId);
@@ -120,12 +122,18 @@ export default function Dashboard() {
           )}
         </div>
 
-        {/* Pending Applications */}
+        {/* Draft and In-Progress Applications */}
         <div className="bg-white/95 rounded-2xl shadow-2xl p-6">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-xl font-semibold text-gray-900">
-              Pending Applications
-            </h3>
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-4">
+            <div>
+              <h3 className="text-xl font-semibold text-gray-900">
+                Draft & In-Progress Applications
+              </h3>
+              <p className="text-sm text-gray-500 mt-1">
+                You can continue saved drafts, complete uploads, or view offers
+                for any active application.
+              </p>
+            </div>
             <button
               onClick={() => navigate("/loan-application")}
               className="text-xs bg-black text-white px-3 py-1.5 rounded-full font-semibold">
@@ -173,7 +181,7 @@ export default function Dashboard() {
                       <p>Valuation: {formatCurrency(a.valuation_estimate)}</p>
                     )}
 
-                  <div className="mt-4 flex gap-2">
+                  <div className="mt-4 flex flex-wrap gap-2">
                     <button
                       className="text-xs bg-amber-500 text-black px-3 py-1 rounded-full font-semibold"
                       onClick={() => handleOffers(a.id)}>
@@ -183,6 +191,11 @@ export default function Dashboard() {
                       className="text-xs bg-white border border-gray-300 text-gray-800 px-3 py-1 rounded-full"
                       onClick={() => handleEdit(a.id)}>
                       Edit Application
+                    </button>
+                    <button
+                      className="text-xs bg-white border border-gray-300 text-gray-800 px-3 py-1 rounded-full"
+                      onClick={() => navigate("/upload-document")}>
+                      Upload Documents
                     </button>
                   </div>
                 </div>

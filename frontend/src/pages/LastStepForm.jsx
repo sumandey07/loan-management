@@ -27,6 +27,9 @@ export default function LastStepForm() {
   const [offerId, setOfferId] = useState(selectedOfferId || "");
   const [loadingOffers, setLoadingOffers] = useState(false);
   const [offersError, setOffersError] = useState(null);
+  const [docs, setDocs] = useState([]);
+  const [selectedDocId, setSelectedDocId] = useState(null);
+  const [loadingDocs, setLoadingDocs] = useState(false);
   const validOrigins = ["offers", "upload-document"];
   const originValid = validOrigins.includes(origin);
 
@@ -41,7 +44,8 @@ export default function LastStepForm() {
   const [submitting, setSubmitting] = useState(false);
   const [finalSummary, setFinalSummary] = useState(null);
   const step1Complete = Boolean(offerId);
-  const step2Complete = Boolean(file) || origin === "upload-document";
+  const step2Complete =
+    Boolean(file) || Boolean(selectedDocId) || origin === "upload-document";
   const step3Active = kycStep !== "INIT";
   const stepClass = (active) =>
     active
@@ -101,6 +105,34 @@ export default function LastStepForm() {
     fetchOffers();
   }, [appId, offers.length, token]);
 
+  useEffect(() => {
+    if (!appId) return;
+
+    const fetchDocs = async () => {
+      setLoadingDocs(true);
+      try {
+        const res = await fetch(
+          `http://localhost:8000/applications/${appId}/documents`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          },
+        );
+        if (!res.ok) throw new Error(`Failed to load documents: ${res.status}`);
+        const data = await res.json();
+        setDocs(data.documents || []);
+        if (!selectedDocId && data.documents?.length > 0) {
+          setSelectedDocId(data.documents[0].id);
+        }
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoadingDocs(false);
+      }
+    };
+
+    fetchDocs();
+  }, [appId, token, selectedDocId]);
+
   // ----------------- Validation -----------------
   const validate = () => {
     const err = {};
@@ -108,7 +140,7 @@ export default function LastStepForm() {
     if (!/^\d{12}$/.test(aadhaar)) err.aadhaar = "Invalid Aadhaar";
     if (!/^[A-Z]{5}[0-9]{4}[A-Z]$/.test(pan)) err.pan = "Invalid PAN format";
     if (!offerId) err.offerId = "Select an offer";
-    if (!file) err.file = "Upload document";
+    if (!file && !selectedDocId) err.file = "Upload document";
 
     setErrors(err);
     return Object.keys(err).length === 0;
@@ -121,8 +153,28 @@ export default function LastStepForm() {
     try {
       setSubmitting(true);
 
+      let uploadFile = file;
+      if (!uploadFile && selectedDocId) {
+        const downloadRes = await fetch(
+          `http://localhost:8000/documents/${selectedDocId}/download`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          },
+        );
+        if (!downloadRes.ok) {
+          throw new Error("Unable to retrieve uploaded document for KYC");
+        }
+
+        const blob = await downloadRes.blob();
+        const fileName =
+          downloadRes.headers.get("x-filename") || "uploaded-doc";
+        uploadFile = new File([blob], fileName, {
+          type: blob.type || "application/octet-stream",
+        });
+      }
+
       const fd = new FormData();
-      fd.append("file", file);
+      fd.append("file", uploadFile);
 
       const res = await fetch(`${KYC_BASE}/verify`, {
         method: "POST",
@@ -192,7 +244,12 @@ export default function LastStepForm() {
       formData.append("offer_id", offerId);
       formData.append("aadhaar_number", aadhaar);
       formData.append("pan_number", pan);
-      formData.append("property_doc", file);
+      if (file) {
+        formData.append("property_doc", file);
+      }
+      if (selectedDocId) {
+        formData.append("selected_doc_id", selectedDocId);
+      }
 
       const res = await fetch(
         `http://localhost:8000/applications/${appId}/finalize`,
@@ -323,12 +380,57 @@ export default function LastStepForm() {
           </div>
 
           {/* File */}
-          <div>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between gap-4">
+              <label className="block text-sm font-semibold text-slate-700 mb-2">
+                Document for KYC
+              </label>
+              {docs.length > 0 && (
+                <span className="text-xs text-slate-500">
+                  {docs.length} uploaded document(s) available
+                </span>
+              )}
+            </div>
             <input
               className="border py-2 px-4 rounded-full w-full mr-8"
               type="file"
-              onChange={(e) => setFile(e.target.files[0])}
+              onChange={(e) => {
+                setFile(e.target.files[0]);
+                setSelectedDocId(null);
+              }}
             />
+            {docs.length > 0 && (
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
+                <p className="font-semibold text-slate-900 mb-2">
+                  Use existing document
+                </p>
+                <div className="space-y-2">
+                  {docs.map((doc) => (
+                    <label
+                      key={doc.id}
+                      className="flex items-center gap-3 rounded-xl border border-gray-200 p-3 hover:bg-slate-100">
+                      <input
+                        type="radio"
+                        name="selectedDoc"
+                        value={doc.id}
+                        checked={selectedDocId === doc.id}
+                        onChange={() => {
+                          setSelectedDocId(doc.id);
+                          setFile(null);
+                        }}
+                      />
+                      <div>
+                        <p className="font-semibold">{doc.doc_type}</p>
+                        <p className="text-xs text-slate-500">
+                          {doc.filename} · {Math.round(doc.size_bytes / 1024)}{" "}
+                          KB
+                        </p>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
             {errors.file && (
               <p className="mt-2 text-xs text-rose-600">{errors.file}</p>
             )}

@@ -22,7 +22,9 @@ export default function UploadDocument() {
   const [appId, setAppId] = useState(currentAppId ? String(currentAppId) : "");
   const [docType, setDocType] = useState("property_doc");
   const [file, setFile] = useState(null);
+  const [mongoUrl, setMongoUrl] = useState("");
   const [msg, setMsg] = useState(null);
+  const [docs, setDocs] = useState([]);
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -45,6 +47,28 @@ export default function UploadDocument() {
       setAppId(String(applications[0].id));
     }
   }, [applications, appId]);
+
+  useEffect(() => {
+    const fetchDocs = async () => {
+      if (!appId) return;
+      try {
+        const res = await fetch(
+          `http://localhost:8000/applications/${appId}/documents`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          },
+        );
+        if (!res.ok) throw new Error("Unable to load documents");
+        const data = await res.json();
+        setDocs(data.documents || []);
+        setUploadSuccess((prev) => prev || data.documents?.length > 0);
+      } catch (e) {
+        console.error(e);
+      }
+    };
+
+    fetchDocs();
+  }, [appId, token]);
 
   const selectedApp = applications.find((app) => String(app.id) === appId);
 
@@ -84,6 +108,15 @@ export default function UploadDocument() {
 
       const data = await res.json();
       setMsg(`Uploaded ${data.filename}`);
+      setDocs((prev) => [
+        ...prev,
+        {
+          id: data.doc_id,
+          filename: data.filename,
+          doc_type: data.doc_type,
+          size_bytes: file ? file.size : 0,
+        },
+      ]);
       setUploadSuccess(true);
       saveCurrentAppId(Number(appId));
       toast.success("Document uploaded successfully");
@@ -216,6 +249,21 @@ export default function UploadDocument() {
                   ))}
                 </select>
               </div>
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-2">
+                  MongoDB Storage URL
+                </label>
+                <input
+                  type="text"
+                  value={mongoUrl}
+                  onChange={(e) => setMongoUrl(e.target.value)}
+                  placeholder="mongodb+srv://username:password@host/db"
+                  className="w-full rounded-3xl border border-gray-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                />
+                <p className="mt-2 text-xs text-slate-500">
+                  Paste your MongoDB URL here to store uploaded documents later.
+                </p>
+              </div>
 
               <div>
                 <label className="block text-sm font-semibold text-slate-700 mb-2">
@@ -230,6 +278,7 @@ export default function UploadDocument() {
                   <option value="salary_slip">Salary Slip</option>
                   <option value="bank_statement">Bank Statement</option>
                   <option value="property_doc">Property Document</option>
+                  <option value="gold_doc">Gold Collateral Document</option>
                 </select>
               </div>
 

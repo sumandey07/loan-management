@@ -53,12 +53,49 @@ export default function LoanApplicationPage() {
       return;
     }
 
+    if (field === "credit_score") {
+      if (value === "") {
+        setCommonForm((prev) => ({ ...prev, credit_score: "" }));
+        return;
+      }
+      const numeric = Number(value);
+      if (Number.isNaN(numeric)) return;
+      const clamped = Math.max(300, Math.min(900, numeric));
+      setCommonForm((prev) => ({ ...prev, credit_score: String(clamped) }));
+      return;
+    }
+
+    if (field === "region") {
+      const sanitized = value.replace(/[^A-Za-z\s]/g, "");
+      setCommonForm((prev) => ({ ...prev, region: sanitized }));
+      return;
+    }
+
     setCommonForm((prev) => ({ ...prev, [field]: value }));
   };
   const handlePropertyChange = (field) => (e) =>
     setPropertyForm((prev) => ({ ...prev, [field]: e.target.value }));
   const handleGoldChange = (field) => (e) =>
     setGoldForm((prev) => ({ ...prev, [field]: e.target.value }));
+
+  const isCommonValid =
+    commonForm.requested_amount.trim() !== "" &&
+    commonForm.tenure_years.trim() !== "" &&
+    commonForm.credit_score.trim() !== "" &&
+    Number(commonForm.credit_score) >= 300 &&
+    Number(commonForm.credit_score) <= 900 &&
+    commonForm.region.trim().length >= 2 &&
+    /^[A-Za-z\s]+$/.test(commonForm.region.trim());
+
+  const isCollateralValid = isGold
+    ? goldForm.gold_weight_grams.trim() !== "" && goldForm.purity.trim() !== ""
+    : propertyForm.size_sqft.trim() !== "";
+
+  const isFinancialValid =
+    commonForm.existing_emi.trim() !== "" &&
+    commonForm.annual_income.trim() !== "";
+
+  const isFormValid = isCommonValid && isCollateralValid && isFinancialValid;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -217,12 +254,17 @@ export default function LoanApplicationPage() {
               <input
                 type="number"
                 name="credit_score"
+                min={300}
+                max={900}
                 value={commonForm.credit_score}
                 onChange={handleCommonChange("credit_score")}
                 required
                 className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-amber-400"
                 placeholder="e.g. 750"
               />
+              <p className="mt-2 text-xs text-slate-500">
+                Credit score must be between 300 and 900.
+              </p>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -231,12 +273,16 @@ export default function LoanApplicationPage() {
               <input
                 type="text"
                 name="region"
+                inputMode="text"
                 value={commonForm.region}
                 onChange={handleCommonChange("region")}
                 className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-amber-400"
                 placeholder="e.g. Gurgaon"
                 required
               />
+              <p className="mt-2 text-xs text-slate-500">
+                Use letters and spaces only.
+              </p>
             </div>
           </div>
           {/* Existing EMI + income */}
@@ -330,8 +376,8 @@ export default function LoanApplicationPage() {
             {err && <div className="text-sm text-red-600">Error: {err}</div>}
             <button
               type="submit"
-              disabled={loading}
-              className="ml-auto bg-amber-500 hover:bg-amber-600 text-black font-semibold px-5 py-2.5 rounded-full shadow-md transition disabled:opacity-60">
+              disabled={loading || !isFormValid}
+              className="ml-auto bg-amber-500 hover:bg-amber-600 text-black font-semibold px-5 py-2.5 rounded-full shadow-md transition disabled:opacity-60 disabled:cursor-not-allowed">
               {loading ? loadingLabel : actionLabel}
             </button>
           </div>

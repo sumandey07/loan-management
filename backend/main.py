@@ -4,6 +4,7 @@ from typing import List
 import json
 from llm_advisor import llm_final_offer
 from fastapi import FastAPI, HTTPException, Depends, UploadFile, File, Form, Header
+from fastapi.responses import FileResponse
 from models import (
     EligibilityForm,
     EligibilityResp,
@@ -284,37 +285,41 @@ def submit_application(app_id: int, user=Depends(get_current_user)):
 
 
 # --------- Upload document ----------
-# @app.post("/applications/{app_id}/upload")
-# async def upload_document(
-#     app_id: int,
-#     doc_type: str = Form(...),
-#     file: UploadFile = File(...),
-#     user=Depends(get_current_user),
-# ):
-#     if file.content_type not in ("application/pdf", "image/png", "image/jpeg"):
-#         raise HTTPException(status_code=400, detail="Invalid file type")
-#     filename = f"{uuid.uuid4().hex}_{file.filename}"
-#     dest_path = os.path.join(UPLOAD_DIR, filename)
-#     size = 0
-#     with open(dest_path, "wb") as buffer:
-#         content = await file.read()
-#         buffer.write(content)
-#         size = len(content)
+@app.post("/applications/{app_id}/upload")
+async def upload_document(
+    app_id: int,
+    doc_type: str = Form(...),
+    file: UploadFile = File(...),
+    user=Depends(get_current_user),
+):
+    if file.content_type not in ("application/pdf", "image/png", "image/jpeg"):
+        raise HTTPException(status_code=400, detail="Invalid file type")
 
-#     session = get_session()
-#     doc = DocumentMeta(
-#         application_id=app_id,
-#         user_id=user.id,
-#         doc_type=doc_type,
-#         filename=filename,
-#         mime_type=file.content_type,
-#         size_bytes=size,
-#     )
-#     session.add(doc)
-#     session.commit()
-#     session.refresh(doc)
-#     session.close()
-#     return {"doc_id": doc.id, "filename": filename}
+    session = get_session()
+    app_obj = session.get(LoanApplication, app_id)
+    if not app_obj or app_obj.user_id != user.id:
+        session.close()
+        raise HTTPException(status_code=404, detail="Application not found")
+
+    filename = f"{uuid.uuid4().hex}_{file.filename}"
+    dest_path = os.path.join(UPLOAD_DIR, filename)
+    content = await file.read()
+    with open(dest_path, "wb") as buffer:
+        buffer.write(content)
+
+    doc = DocumentMeta(
+        application_id=app_id,
+        user_id=user.id,
+        doc_type=doc_type,
+        filename=filename,
+        mime_type=file.content_type,
+        size_bytes=len(content),
+    )
+    session.add(doc)
+    session.commit()
+    session.refresh(doc)
+    session.close()
+    return {"doc_id": doc.id, "filename": filename, "doc_type": doc_type}
 
 
 @app.post("/admin/login", response_model=AdminTokenResp)
@@ -665,7 +670,8 @@ async def finalize_application(
     offer_id: str = Form(...),
     aadhaar_number: str = Form(...),
     pan_number: str = Form(...),
-    property_doc: UploadFile = File(...),
+    property_doc: UploadFile | None = File(None),
+    selected_doc_id: int | None = Form(None),
     user=Depends(get_current_user),
 ):
     session = get_session()
@@ -674,27 +680,51 @@ async def finalize_application(
     if not app_obj or app_obj.user_id != user.id:
         raise HTTPException(status_code=404, detail="Application not found")
 
-    # --- Validate content type ---
-    if property_doc.content_type not in ("application/pdf", "image/png", "image/jpeg"):
-        raise HTTPException(status_code=400, detail="Invalid file type")
+    if property_doc is None and selected_doc_id is None:
+        raise HTTPException(
+            status_code=400, detail="Provide a document or select an existing one"
+        )
 
-    # --- Save file ---
-    filename = f"{uuid.uuid4().hex}_{property_doc.filename}"
-    dest_path = os.path.join(UPLOAD_DIR, filename)
-    with open(dest_path, "wb") as buffer:
-        content = await property_doc.read()
-        buffer.write(content)
+    if selected_doc_id is not None:
+        existing_doc = session.get(DocumentMeta, selected_doc_id)
+        if not existing_doc or existing_doc.application_id != app_id:
+            raise HTTPException(status_code=404, detail="Selected document not found")
+        if existing_doc.mime_type not in ("application/pdf", "image/png", "image/jpeg"):
+            raise HTTPException(
+                status_code=400, detail="Invalid existing document type"
+            )
+        # Use existing document metadata without re-uploading
+        property_doc_filename = existing_doc.filename
+        property_doc_mime = existing_doc.mime_type
+        property_doc_content = None
+    else:
+        if property_doc.content_type not in (
+            "application/pdf",
+            "image/png",
+            "image/jpeg",
+        ):
+            raise HTTPException(status_code=400, detail="Invalid file type")
 
-    # --- Save document metadata ---
-    doc = DocumentMeta(
-        application_id=app_id,
-        user_id=user.id,
-        doc_type="property_document",
-        filename=filename,
-        mime_type=property_doc.content_type,
-        size_bytes=len(content),
-    )
-    session.add(doc)
+        filename = f"{uuid.uuid4().hex}_{property_doc.filename}"
+        dest_path = os.path.join(UPLOAD_DIR, filename)
+        with open(dest_path, "wb") as buffer:
+            content = await property_doc.read()
+            buffer.write(content)
+
+        doc = DocumentMeta(
+            application_id=app_id,
+            user_id=user.id,
+            doc_type="property_document",
+            filename=filename,
+            mime_type=property_doc.content_type,
+            size_bytes=len(content),
+        )
+        session.add(doc)
+        session.commit()
+        session.refresh(doc)
+        property_doc_filename = filename
+        property_doc_mime = property_doc.content_type
+        property_doc_content = None
 
     # --- Get offers again to pull full offer details ---
     offers_data = generate_offers_with_llm(
@@ -724,7 +754,7 @@ async def finalize_application(
     masked_pan = pan_number[0] + "XXXX" + pan_number[-1]
 
     # --- Update Loan Application ---
-    app_obj.status = "Approved (Pending Physical Verification)"
+    app_obj.status = "submitted"
     app_obj.selected_offer_id = offer_id
     app_obj.aadhaar_number = masked_aadhaar
     app_obj.pan_number = masked_pan
@@ -742,9 +772,46 @@ async def finalize_application(
         "valuation_estimate": app_obj.valuation_estimate,
         "aadhaar_number": masked_aadhaar,
         "pan_number": masked_pan,
-        "status": "Approved (Pending Physical Verification)",
-        "note": "A physical verification will be completed within 48 hours.",
+        "status": "Submitted for admin review",
+        "note": "Your application has been submitted and is awaiting approval.",
     }
 
     session.close()
     return final_summary
+
+
+@app.get("/documents/{doc_id}/download")
+def download_document(doc_id: int, user=Depends(get_current_user)):
+    session = get_session()
+    doc = session.get(DocumentMeta, doc_id)
+    if not doc or doc.user_id != user.id:
+        session.close()
+        raise HTTPException(status_code=404, detail="Document not found")
+
+    file_path = os.path.join(UPLOAD_DIR, doc.filename)
+    if not os.path.exists(file_path):
+        session.close()
+        raise HTTPException(status_code=404, detail="File not found")
+
+    session.close()
+    return FileResponse(
+        path=file_path,
+        media_type=doc.mime_type,
+        filename=doc.filename,
+        headers={"x-filename": doc.filename},
+    )
+
+
+@app.get("/applications/{app_id}/documents")
+def list_application_documents(app_id: int, user=Depends(get_current_user)):
+    session = get_session()
+    app_obj = session.get(LoanApplication, app_id)
+    if not app_obj or app_obj.user_id != user.id:
+        session.close()
+        raise HTTPException(status_code=404, detail="Application not found")
+
+    docs = session.exec(
+        select(DocumentMeta).where(DocumentMeta.application_id == app_id)
+    ).all()
+    session.close()
+    return {"documents": [d.dict() for d in docs]}

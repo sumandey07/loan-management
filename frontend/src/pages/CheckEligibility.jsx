@@ -39,13 +39,13 @@ export default function CheckEligibility() {
           </div>
           <div
             className={`rounded-full px-7 py-3 text-lg font-semibold ${eligible ? "bg-emerald-500 text-white" : "bg-red-500 text-white"}`}>
-            {eligible ? "Eligible" : "Not eligible"}
+            {eligible ? "Eligible" : "Not Eligible"}
           </div>
         </div>
 
         {eligible ? (
-          <div className="mt-10 space-y-6 text-slate-700">
-            <p className="text-lg leading-8">
+          <div className="mt-8 space-y-6 text-slate-700">
+            <p className="text-lg leading-8 my-6">
               Based on your details, you qualify for a mortgage estimate. Use
               this as a starting point to compare offers and complete your
               application.
@@ -62,18 +62,18 @@ export default function CheckEligibility() {
               <Link
                 to="/register"
                 className="rounded-full bg-amber-400 px-6 py-3 text-center font-semibold text-slate-950 transition hover:bg-amber-300">
-                Register to continue
+                Register to Continue
               </Link>
               <Link
-                to="/loan-application"
+                to="/"
                 className="rounded-full border border-slate-200 bg-white px-6 py-3 text-center font-semibold text-slate-900 transition hover:bg-white/10">
-                Start application
+                Check for other offers
               </Link>
             </div>
           </div>
         ) : (
           <div className="mt-10 space-y-6 text-slate-300">
-            <p className="text-lg leading-8">
+            <p className="text-lg text-slate-500 leading-8 mt-10 mb-16">
               Your current profile does not meet the minimum criteria for a
               mortgage today. You can improve eligibility by increasing income,
               improving credit score, or adding a stronger collateral profile.
@@ -87,7 +87,7 @@ export default function CheckEligibility() {
               <Link
                 to="/register"
                 className="rounded-full border border-slate-200 bg-white px-6 py-3 text-center font-semibold text-slate-900 transition hover:bg-white/10">
-                Learn more options
+                Learn More
               </Link>
             </div>
           </div>
