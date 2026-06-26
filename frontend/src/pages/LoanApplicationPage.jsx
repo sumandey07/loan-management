@@ -58,10 +58,14 @@ export default function LoanApplicationPage() {
         setCommonForm((prev) => ({ ...prev, credit_score: "" }));
         return;
       }
-      const numeric = Number(value);
-      if (Number.isNaN(numeric)) return;
-      const clamped = Math.max(300, Math.min(900, numeric));
-      setCommonForm((prev) => ({ ...prev, credit_score: String(clamped) }));
+
+      // Allow only digits while typing
+      if (!/^\d*$/.test(value)) return;
+
+      setCommonForm((prev) => ({
+        ...prev,
+        credit_score: value,
+      }));
       return;
     }
 
@@ -154,18 +158,18 @@ export default function LoanApplicationPage() {
 
       setCollateralType(data.collateral_type);
       setCommonForm({
-        requested_amount: data.requested_amount ?? "",
-        tenure_years: data.tenure_years ?? "",
-        credit_score: data.credit_score ?? "",
-        existing_emi: data.existing_emi ?? "",
-        annual_income: data.annual_income ?? "",
-        region: data.region ?? "",
+        requested_amount: String(data.requested_amount ?? ""),
+        tenure_years: String(data.tenure_years ?? ""),
+        credit_score: String(data.credit_score ?? ""),
+        existing_emi: String(data.existing_emi ?? ""),
+        annual_income: String(data.annual_income ?? ""),
+        region: String(data.region ?? ""),
       });
 
-      setPropertyForm({ size_sqft: data.size_sqft ?? "" });
+      setPropertyForm({ size_sqft: String(data.size_sqft ?? "") });
       setGoldForm({
-        gold_weight_grams: data.gold_weight_grams ?? "",
-        purity: data.purity ?? "",
+        gold_weight_grams: String(data.gold_weight_grams ?? ""),
+        purity: String(data.purity ?? ""),
       });
     }
 
@@ -254,8 +258,9 @@ export default function LoanApplicationPage() {
               <input
                 type="number"
                 name="credit_score"
-                min={300}
-                max={900}
+                min="300"
+                max="900"
+                step="1"
                 value={commonForm.credit_score}
                 onChange={handleCommonChange("credit_score")}
                 required

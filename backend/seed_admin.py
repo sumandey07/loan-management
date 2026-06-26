@@ -5,13 +5,21 @@ init_db()
 session = get_session()
 
 # Create default admin
-admin = Admin(
-    username="admin",
-    password_hash=hash_password("admin123"),
+admin1 = Admin(
+    username="admin1",
+    password_hash=hash_password("admin12"),
 )
 
-session.add(admin)
+admin2 = Admin(
+    username="admin2",
+    password_hash=hash_password("admin13"),
+)
+
+session.add(admin1)
+session.add(admin2)
 session.commit()
 session.close()
 
-print("Admin user created: username=admin password=admin123")
+print(
+    "Admin users created: username=admin1 password=admin12, username=admin2 password=admin13"
+)

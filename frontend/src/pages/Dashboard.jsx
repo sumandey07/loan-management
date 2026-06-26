@@ -15,6 +15,7 @@ export default function Dashboard() {
   const [apps, setApps] = useState([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState(null);
+  const [selectedAppId, setSelectedAppId] = useState(null);
 
   useEffect(() => {
     if (!token) return;
@@ -57,9 +58,20 @@ export default function Dashboard() {
     "submitted",
     "verification_pending",
     "Approved (Pending Physical Verification)",
+    "approved",
+    "rejected",
   ]);
 
   const pendingApps = apps.filter((a) => visibleStatuses.has(a.status || ""));
+
+  // Set first app as selected when apps load
+  useEffect(() => {
+    if (pendingApps.length > 0 && !selectedAppId) {
+      setSelectedAppId(pendingApps[0].id);
+    }
+  }, [pendingApps, selectedAppId]);
+
+  const selectedApp = pendingApps.find((a) => a.id === selectedAppId);
 
   const handleOffers = (appId) => {
     saveCurrentAppId(appId);
@@ -94,10 +106,10 @@ export default function Dashboard() {
         {/* Profile / header card */}
         <div className="bg-white/95 rounded-2xl shadow-2xl p-6 flex justify-between items-center">
           <div>
-            <h2 className="text-3xl font-bold text-gray-900">
+            <h2 className="text-3xl font-bold text-gray-900 mt-4">
               Welcome, {fullName || "Bank Officer"}
             </h2>
-            <p className="text-sm text-gray-600 mt-1">
+            <p className="text-sm text-gray-600 my-5">
               Monitor all mortgage applications you&apos;re handling and quickly
               continue pending cases.
             </p>
@@ -124,10 +136,10 @@ export default function Dashboard() {
 
         {/* Draft and In-Progress Applications */}
         <div className="bg-white/95 rounded-2xl shadow-2xl p-6">
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-4">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-4">
             <div>
               <h3 className="text-xl font-semibold text-gray-900">
-                Draft & In-Progress Applications
+                Pending Applications
               </h3>
               <p className="text-sm text-gray-500 mt-1">
                 You can continue saved drafts, complete uploads, or view offers
@@ -136,72 +148,173 @@ export default function Dashboard() {
             </div>
             <button
               onClick={() => navigate("/loan-application")}
-              className="text-xs bg-black text-white px-3 py-1.5 rounded-full font-semibold">
+              className="text-xs bg-black text-white px-3 py-1.5 rounded-full font-semibold whitespace-nowrap">
               + New Application
             </button>
           </div>
 
-          {pendingApps.length === 0 ? (
-            <p className="text-sm text-gray-600">
-              No pending applications right now. Create a new application to
-              begin.
-            </p>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {pendingApps.map((a) => (
-                <div
-                  key={a.id}
-                  className="border border-gray-200 rounded-xl p-4 text-sm bg-gray-50 space-y-1">
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="font-bold mb-2">Application {a.id}</span>
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-900">
-                      {a.status}
-                    </span>
-                  </div>
-                  <p>Collateral: {a.collateral_type}</p>
-                  <p>
-                    Requested Loan Amount: {formatCurrency(a.requested_amount)}
-                  </p>
-                  <p>Tenure: {a.tenure_years} yrs</p>
-                  <p>Credit Score: {a.credit_score || "—"}</p>
-                  <p>Existing EMI: {formatCurrency(a.existing_emi)}</p>
-                  <p>Annual Income: {formatCurrency(a.annual_income)}</p>
-                  <p>Region: {a.region}</p>
-                  {a.size_sqft && <p>Size in Sqft: {a.size_sqft} sqft</p>}
-                  {a.purity !== undefined && a.purity !== null && (
-                    <p>Purity of Gold: {a.purity}</p>
-                  )}
-
-                  {a.gold_weight_grams !== undefined &&
-                    a.gold_weight_grams !== null && (
-                      <p>Gold Weight (in grams): {a.gold_weight_grams}</p>
-                    )}
-                  {a.valuation_estimate !== undefined &&
-                    a.valuation_estimate !== null && (
-                      <p>Valuation: {formatCurrency(a.valuation_estimate)}</p>
-                    )}
-
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    <button
-                      className="text-xs bg-amber-500 text-black px-3 py-1 rounded-full font-semibold"
-                      onClick={() => handleOffers(a.id)}>
-                      View Offers
-                    </button>
-                    <button
-                      className="text-xs bg-white border border-gray-300 text-gray-800 px-3 py-1 rounded-full"
-                      onClick={() => handleEdit(a.id)}>
-                      Edit Application
-                    </button>
-                    <button
-                      className="text-xs bg-white border border-gray-300 text-gray-800 px-3 py-1 rounded-full"
-                      onClick={() => navigate("/upload-document")}>
-                      Upload Documents
-                    </button>
-                  </div>
+          {/* Fixed Height Container */}
+          <div className="h-96 flex flex-col">
+            {pendingApps.length === 0 ? (
+              <div className="flex-1 flex items-center justify-center">
+                <p className="text-sm text-gray-600 text-center">
+                  No pending applications right now. Create a new application to
+                  begin.
+                </p>
+              </div>
+            ) : (
+              <>
+                {/* Dropdown Selector */}
+                <div className="mb-4">
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">
+                    Select Application
+                  </label>
+                  <select
+                    value={selectedAppId}
+                    onChange={(e) => setSelectedAppId(Number(e.target.value))}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-gray-900">
+                    {pendingApps.map((app) => (
+                      <option key={app.id} value={app.id}>
+                        Application #{app.id} - {app.collateral_type} - ₹
+                        {Number(app.requested_amount).toLocaleString()}
+                      </option>
+                    ))}
+                  </select>
                 </div>
-              ))}
-            </div>
-          )}
+
+                {/* Application Details - Scrollable */}
+                <div className="flex-1 overflow-y-auto bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-2">
+                  {selectedApp && (
+                    <>
+                      <div className="flex justify-between items-start mb-3">
+                        <div>
+                          <span className="font-bold text-gray-900">
+                            Application {selectedApp.id}
+                          </span>
+                        </div>
+                        <span
+                          className={`text-xs px-2 py-1 rounded-full whitespace-nowrap ${
+                            selectedApp.status === "approved"
+                              ? "bg-green-100 text-green-900"
+                              : selectedApp.status === "rejected"
+                                ? "bg-red-100 text-red-900"
+                                : "bg-amber-100 text-amber-900"
+                          }`}>
+                          {selectedApp.status === "approved"
+                            ? "✓ Approved"
+                            : selectedApp.status === "rejected"
+                              ? "✗ Rejected"
+                              : selectedApp.status}
+                        </span>
+                      </div>
+
+                      {selectedApp.status === "rejected" &&
+                        selectedApp.rejection_reason && (
+                          <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-3">
+                            <p className="text-xs font-semibold text-red-900 mb-1">
+                              Rejection Reason:
+                            </p>
+                            <p className="text-xs text-red-800">
+                              {selectedApp.rejection_reason}
+                            </p>
+                          </div>
+                        )}
+
+                      <div className="space-y-1 text-sm text-gray-700">
+                        <p>
+                          <span className="font-semibold">Collateral:</span>{" "}
+                          {selectedApp.collateral_type}
+                        </p>
+                        <p>
+                          <span className="font-semibold">Loan Amount:</span>{" "}
+                          {formatCurrency(selectedApp.requested_amount)}
+                        </p>
+                        <p>
+                          <span className="font-semibold">Tenure:</span>{" "}
+                          {selectedApp.tenure_years} years
+                        </p>
+                        <p>
+                          <span className="font-semibold">Credit Score:</span>{" "}
+                          {selectedApp.credit_score || "—"}
+                        </p>
+                        <p>
+                          <span className="font-semibold">Existing EMI:</span>{" "}
+                          {formatCurrency(selectedApp.existing_emi)}
+                        </p>
+                        <p>
+                          <span className="font-semibold">Annual Income:</span>{" "}
+                          {formatCurrency(selectedApp.annual_income)}
+                        </p>
+                        <p>
+                          <span className="font-semibold">Region:</span>{" "}
+                          {selectedApp.region}
+                        </p>
+                        {selectedApp.size_sqft && (
+                          <p>
+                            <span className="font-semibold">Size:</span>{" "}
+                            {selectedApp.size_sqft} sqft
+                          </p>
+                        )}
+                        {selectedApp.purity !== undefined &&
+                          selectedApp.purity !== null && (
+                            <p>
+                              <span className="font-semibold">
+                                Gold Purity:
+                              </span>{" "}
+                              {selectedApp.purity}
+                            </p>
+                          )}
+                        {selectedApp.gold_weight_grams !== undefined &&
+                          selectedApp.gold_weight_grams !== null && (
+                            <p>
+                              <span className="font-semibold">
+                                Gold Weight:
+                              </span>{" "}
+                              {selectedApp.gold_weight_grams} grams
+                            </p>
+                          )}
+                        {selectedApp.valuation_estimate !== undefined &&
+                          selectedApp.valuation_estimate !== null && (
+                            <p>
+                              <span className="font-semibold">Valuation:</span>{" "}
+                              {formatCurrency(selectedApp.valuation_estimate)}
+                            </p>
+                          )}
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                {/* Action Buttons */}
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {selectedApp &&
+                    selectedApp.status !== "approved" &&
+                    selectedApp.status !== "rejected" && (
+                      <>
+                        <button
+                          className="text-xs bg-amber-500 text-black px-3 py-1.5 rounded-full font-semibold hover:bg-amber-600 transition"
+                          onClick={() => handleOffers(selectedApp.id)}>
+                          View Offers
+                        </button>
+                        <button
+                          className="text-xs bg-white border border-gray-300 text-gray-800 px-3 py-1.5 rounded-full hover:bg-gray-100 transition"
+                          onClick={() => handleEdit(selectedApp.id)}>
+                          Edit Application
+                        </button>
+                        <button
+                          className="text-xs bg-white border border-gray-300 text-gray-800 px-3 py-1.5 rounded-full hover:bg-gray-100 transition"
+                          onClick={() => {
+                            saveCurrentAppId(selectedApp.id);
+                            navigate("/upload-document");
+                          }}>
+                          Upload Documents
+                        </button>
+                      </>
+                    )}
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </div>
       <ChatWidget />

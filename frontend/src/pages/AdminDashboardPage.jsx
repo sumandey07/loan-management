@@ -7,6 +7,11 @@ export default function AdminDashboardPage() {
   const [customers, setCustomers] = useState([]);
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [rejectionModal, setRejectionModal] = useState({
+    isOpen: false,
+    appId: null,
+    reason: "",
+  });
 
   useEffect(() => {
     if (!token) {
@@ -33,9 +38,12 @@ export default function AdminDashboardPage() {
     loadData();
   }, [token]);
 
-  const updateStatus = async (id, status) => {
+  const updateStatus = async (id, status, rejectionReason = "") => {
     const fd = new FormData();
     fd.append("new_status", status);
+    if (rejectionReason) {
+      fd.append("rejection_reason", rejectionReason);
+    }
 
     await fetch(
       `http://localhost:8000/admin/applications/${id}/update-status`,
@@ -48,6 +56,23 @@ export default function AdminDashboardPage() {
 
     toast.success(`Application ${status}`);
     window.location.reload();
+  };
+
+  const handleRejectClick = (appId) => {
+    setRejectionModal({
+      isOpen: true,
+      appId,
+      reason: "",
+    });
+  };
+
+  const handleSubmitRejection = async () => {
+    if (!rejectionModal.reason.trim()) {
+      toast.error("Please provide a rejection reason");
+      return;
+    }
+    await updateStatus(rejectionModal.appId, "rejected", rejectionModal.reason);
+    setRejectionModal({ isOpen: false, appId: null, reason: "" });
   };
 
   if (loading)
@@ -75,8 +100,8 @@ export default function AdminDashboardPage() {
               Loan Application Management
             </h1>
             <p className="mt-3 max-w-4xl text-gray-100">
-              Review active customers, pending applications, and take action
-              with a clear, minimalist dashboard.
+              Review active customers, pending applications, and take actions on
+              loan requests
             </p>
           </div>
           <div className="rounded-full border border-slate-200 justify-center items-center flex flex-row font-bold bg-green-100 select-none px-4 py-2 text-sm text-green-500 shadow-lg">
@@ -165,14 +190,16 @@ export default function AdminDashboardPage() {
                               Approve
                             </button>
                             <button
-                              onClick={() => updateStatus(app.id, "rejected")}
+                              onClick={() => handleRejectClick(app.id)}
                               className="rounded-full bg-red-500 px-3 py-2 text-xs font-semibold text-white transition hover:bg-red-400">
                               Reject
                             </button>
                           </div>
                         ) : (
                           <span className="text-slate-400 text-xs italic">
-                            Completed
+                            {app.status === "approved"
+                              ? "✓ Approved"
+                              : "✗ Rejected"}
                           </span>
                         )}
                       </td>
@@ -215,6 +242,48 @@ export default function AdminDashboardPage() {
             </div>
           </section>
         </div>
+
+        {/* Rejection Modal */}
+        {rejectionModal.isOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+            <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-2xl w-96 text-slate-900">
+              <h3 className="text-xl font-semibold mb-4">Reject Application</h3>
+              <p className="text-sm text-slate-600 mb-4">
+                Please provide a reason for rejection:
+              </p>
+              <textarea
+                value={rejectionModal.reason}
+                onChange={(e) =>
+                  setRejectionModal({
+                    ...rejectionModal,
+                    reason: e.target.value,
+                  })
+                }
+                placeholder="Enter rejection reason..."
+                className="w-full rounded-lg border border-slate-300 p-3 text-sm focus:border-amber-500 focus:outline-none resize-none"
+                rows="5"
+              />
+              <div className="mt-6 flex gap-3 justify-end">
+                <button
+                  onClick={() =>
+                    setRejectionModal({
+                      isOpen: false,
+                      appId: null,
+                      reason: "",
+                    })
+                  }
+                  className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-900 transition hover:bg-slate-100">
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSubmitRejection}
+                  className="rounded-full bg-red-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-400">
+                  Submit Rejection
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

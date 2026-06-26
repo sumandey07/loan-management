@@ -270,7 +270,7 @@ export default function OfferPage() {
 
                       <button
                         onClick={() =>
-                          navigate("/last-step", {
+                          navigate("/upload-document", {
                             state: {
                               appId: selectedAppId,
                               offers,

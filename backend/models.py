@@ -66,9 +66,9 @@ class LoanApplication(SQLModel, table=True):
     llm_max_loan: Optional[float] = None
     llm_recommended_roi: Optional[float] = None
     llm_explanation: Optional[str] = None
-
     llm_reviewed_at: Optional[datetime] = None
     llm_reviewed_by: Optional[str] = None
+    rejection_reason: Optional[str] = None
 
 
 class DocumentMeta(SQLModel, table=True):
@@ -192,6 +192,7 @@ class ApplicationOut(BaseModel):
     llm_explanation: Optional[str] = None
     llm_reviewed_at: Optional[datetime] = None
     llm_reviewed_by: Optional[str] = None
+    rejection_reason: Optional[str] = None
 
 
 class ChatMessage(BaseModel):

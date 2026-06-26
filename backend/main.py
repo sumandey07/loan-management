@@ -383,6 +383,7 @@ def list_all_applications(admin=Depends(get_current_admin)):
 def admin_update_application_status(
     app_id: int,
     new_status: str = Form(...),  # approved or rejected
+    rejection_reason: str = Form(None),
     admin=Depends(get_current_admin),
 ):
     session = get_session()
@@ -395,14 +396,20 @@ def admin_update_application_status(
         raise HTTPException(status_code=400, detail="Invalid status")
 
     app_obj.status = new_status
+    if new_status == "rejected" and rejection_reason:
+        app_obj.rejection_reason = rejection_reason
     session.add(app_obj)
     session.commit()
+    session.refresh(app_obj)
     session.close()
 
     return {
         "message": "Status updated",
         "application_id": app_id,
         "new_status": new_status,
+        "rejection_reason": (
+            app_obj.rejection_reason if new_status == "rejected" else None
+        ),
     }
 
 

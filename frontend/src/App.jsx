@@ -14,7 +14,6 @@ const RegisterPage = lazy(() => import("./pages/RegisterPage"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const OfferPage = lazy(() => import("./pages/OfferPage"));
 const NotFound = lazy(() => import("./pages/NotFoundPage"));
-const LastStepForm = lazy(() => import("./pages/LastStepForm"));
 const CheckEligibility = lazy(() => import("./pages/CheckEligibility"));
 const LoanApplicationPage = lazy(() => import("./pages/LoanApplicationPage"));
 const UploadDocument = lazy(() => import("./pages/UploadDocument"));
@@ -80,14 +79,6 @@ export default function App() {
               element={
                 <ProtectedRoute>
                   <AssessApplication />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/last-step"
-              element={
-                <ProtectedRoute>
-                  <LastStepForm />
                 </ProtectedRoute>
               }
             />
