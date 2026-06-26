@@ -138,6 +138,14 @@ export default function UploadDocumentNew() {
     fetchOffers();
   }, [appId, offers.length, token]);
 
+  useEffect(() => {
+    if (!offerId || offers.length === 0) return;
+    const selected = offers.find((o) => String(o.offer_id) === String(offerId));
+    if (selected) {
+      setSelectedOffer(selected);
+    }
+  }, [offerId, offers]);
+
   // Load uploaded documents
   useEffect(() => {
     if (!appId) return;
@@ -184,7 +192,7 @@ export default function UploadDocumentNew() {
     uploadedDocs.property_gold,
   );
 
-  const validate = () => {
+  const validate = (forReview = false) => {
     const err = {};
 
     const aadhaarStr = getAadhaarString();
@@ -192,7 +200,7 @@ export default function UploadDocumentNew() {
     if (!/^[A-Z]{5}[0-9]{4}[A-Z]$/.test(pan)) err.pan = "Invalid PAN format";
     if (!/^\d{10,18}$/.test(bankAccount))
       err.bankAccount = "Invalid bank account";
-    if (!offerId) err.offerId = "Select an offer";
+    if (forReview && !offerId) err.offerId = "Select an offer";
 
     setErrors(err);
     return Object.keys(err).length === 0;
@@ -272,21 +280,21 @@ export default function UploadDocumentNew() {
     try {
       setSubmitting(true);
       const aadhaarStr = getAadhaarString();
+      const payload = new FormData();
+      payload.append("aadhaar", aadhaarStr);
+      payload.append("pan", pan);
+      payload.append("bank_account", bankAccount);
 
       const res = await fetch(`${KYC_BASE}/verify`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          aadhaar: aadhaarStr,
-          pan,
-          bank_account: bankAccount,
-        }),
+        headers: { Accept: "application/json" },
+        body: payload,
       });
 
       const data = await res.json();
       if (!res.ok) throw new Error(data.detail || "KYC failed");
 
-      if (data.aadhaar) {
+      if (data.aadhaar_otp) {
         setKycStep("OTP_AADHAAR");
         setOtpType("aadhaar");
         toast.success("OTP sent to Aadhaar-linked mobile");
@@ -304,27 +312,25 @@ export default function UploadDocumentNew() {
   const verifyOtp = async () => {
     try {
       setSubmitting(true);
+      const payload = new FormData();
+      payload.append("aadhaar", getAadhaarString());
+      payload.append("otp", otp);
 
       const res = await fetch(`${KYC_BASE}/verify-otp`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          aadhaar: getAadhaarString(),
-          otp: Number(otp),
-          pan_verified: true,
-          bank_verified: true,
-        }),
+        headers: { Accept: "application/json" },
+        body: payload,
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.detail);
+      if (!res.ok) throw new Error(data.detail || "OTP verification failed");
 
-      if (data.final_kyc.kyc_status !== "APPROVED") {
+      if (data.final_kyc?.kyc_status !== "APPROVED") {
         throw new Error("KYC not approved");
       }
 
       setKycStep("VERIFIED");
-      toast.success("KYC verified successfully");
+      toast.success("OTP verified successfully");
       setOtp("");
     } catch (e) {
       toast.error(e.message);
@@ -344,12 +350,16 @@ export default function UploadDocumentNew() {
     try {
       setSubmitting(true);
 
+      const selectedDocId =
+        uploadedDocs.property_gold?.id ||
+        docs.find((doc) => ["property_doc", "gold_doc"].includes(doc.doc_type))?.id;
+
       const formData = new FormData();
       formData.append("offer_id", offerId);
       formData.append("aadhaar_number", getAadhaarString());
       formData.append("pan_number", pan);
-      if (uploadedDocs.property_gold?.id) {
-        formData.append("selected_doc_id", uploadedDocs.property_gold.id);
+      if (selectedDocId) {
+        formData.append("selected_doc_id", selectedDocId);
       }
 
       const res = await fetch(
@@ -361,14 +371,17 @@ export default function UploadDocumentNew() {
         },
       );
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(`Error ${res.status}`);
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        const message = data?.detail || data?.message || `Error ${res.status}`;
+        throw new Error(message);
+      }
 
       setFinalSummary(data);
       saveCurrentAppId(Number(appId));
       toast.success("Loan application finalized!");
     } catch (e) {
-      toast.error(e.message);
+      toast.error(e.message || "Failed to submit application");
     } finally {
       setSubmitting(false);
     }
@@ -412,7 +425,7 @@ export default function UploadDocumentNew() {
       ) : (
         <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-3">
           <p className="text-sm text-emerald-900">
-            <strong>{uploaded.filename}</strong>
+            <strong className="break-words">{uploaded.filename}</strong>
             <br />
             <span className="text-xs text-emerald-700">
               {formatFileSize(uploaded.size_bytes)}
@@ -733,7 +746,13 @@ export default function UploadDocumentNew() {
                     {kycStep === "INIT" && (
                       <button
                         type="button"
-                        onClick={startKyc}
+                        onClick={async () => {
+                          if (!validate()) {
+                            toast.error("Fix the errors before proceeding");
+                            return;
+                          }
+                          await startKyc();
+                        }}
                         disabled={submitting}
                         className="w-full rounded-full bg-amber-500 px-5 py-3 font-semibold text-black hover:bg-amber-600 disabled:opacity-60">
                         {submitting ? "Verifying..." : "Start KYC Verification"}

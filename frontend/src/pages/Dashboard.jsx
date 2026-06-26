@@ -287,30 +287,32 @@ export default function Dashboard() {
 
                 {/* Action Buttons */}
                 <div className="mt-4 flex flex-wrap gap-2">
-                  {selectedApp &&
-                    selectedApp.status !== "approved" &&
-                    selectedApp.status !== "rejected" && (
-                      <>
-                        <button
-                          className="text-xs bg-amber-500 text-black px-3 py-1.5 rounded-full font-semibold hover:bg-amber-600 transition"
-                          onClick={() => handleOffers(selectedApp.id)}>
-                          View Offers
-                        </button>
-                        <button
-                          className="text-xs bg-white border border-gray-300 text-gray-800 px-3 py-1.5 rounded-full hover:bg-gray-100 transition"
-                          onClick={() => handleEdit(selectedApp.id)}>
-                          Edit Application
-                        </button>
-                        <button
-                          className="text-xs bg-white border border-gray-300 text-gray-800 px-3 py-1.5 rounded-full hover:bg-gray-100 transition"
-                          onClick={() => {
-                            saveCurrentAppId(selectedApp.id);
-                            navigate("/upload-document");
-                          }}>
-                          Upload Documents
-                        </button>
-                      </>
-                    )}
+                  {selectedApp && (
+                    <>
+                      <button
+                        className="text-xs bg-amber-500 text-black px-3 py-1.5 rounded-full font-semibold hover:bg-amber-600 transition"
+                        onClick={() => handleOffers(selectedApp.id)}>
+                        View Offers
+                      </button>
+                      {selectedApp.status === "draft" && (
+                        <>
+                          <button
+                            className="text-xs bg-white border border-gray-300 text-gray-800 px-3 py-1.5 rounded-full hover:bg-gray-100 transition"
+                            onClick={() => handleEdit(selectedApp.id)}>
+                            Edit Application
+                          </button>
+                          <button
+                            className="text-xs bg-white border border-gray-300 text-gray-800 px-3 py-1.5 rounded-full hover:bg-gray-100 transition"
+                            onClick={() => {
+                              saveCurrentAppId(selectedApp.id);
+                              navigate("/upload-document");
+                            }}>
+                            Upload Documents
+                          </button>
+                        </>
+                      )}
+                    </>
+                  )}
                 </div>
               </>
             )}
