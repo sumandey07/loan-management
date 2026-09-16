@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useCurrentApplication } from "../hooks/useCurrentApplication";
+import { getUserApplicationNumber } from "../utils/applicationNumber";
 
 const KYC_BASE = "http://localhost:8000/kyc";
 
@@ -206,6 +207,10 @@ export default function UploadDocumentNew() {
   const uploadDocument = async (docType, file) => {
     if (!file) {
       toast.error("Please select a file");
+      return;
+    }
+
+    if (loading) {
       return;
     }
 
@@ -425,6 +430,11 @@ export default function UploadDocumentNew() {
           onChange={(e) => setFile(e.target.files[0])}
           className="mb-3 w-full"
         />
+        {file && (
+          <div className="mb-3 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+            Selected file: <span className="font-semibold break-all">{file.name}</span>
+          </div>
+        )}
         <button
           type="button"
           onClick={() => uploadDocument(docType, file)}

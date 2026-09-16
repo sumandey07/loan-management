@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import ChatWidget from "../components/ChatWidget";
 import { useAuth } from "../context/AuthContext";
 import { useCurrentApplication } from "../hooks/useCurrentApplication";
+import { getUserApplicationNumber } from "../utils/applicationNumber";
 
 export default function Dashboard() {
   const { token } = useAuth();
@@ -73,6 +74,11 @@ export default function Dashboard() {
 
   const selectedApp = pendingApps.find((a) => a.id === selectedAppId);
 
+  const getAppNumber = (appId) => {
+    const displayNumber = getUserApplicationNumber(apps, appId);
+    return displayNumber ?? "—";
+  };
+
   const handleOffers = (appId) => {
     saveCurrentAppId(appId);
     navigate("/offers");
@@ -121,7 +127,7 @@ export default function Dashboard() {
                 Latest Application
               </p>
               <p>
-                ID: <span className="font-mono">{latest.id}</span>
+                Application No: <span className="font-mono">{getAppNumber(latest.id)}</span>
               </p>
               <p>Status: {latest.status}</p>
               <p>Amount: {formatCurrency(latest.requested_amount)}</p>
@@ -175,7 +181,7 @@ export default function Dashboard() {
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-gray-900">
                     {pendingApps.map((app) => (
                       <option key={app.id} value={app.id}>
-                        Application #{app.id} - {app.collateral_type} - ₹
+                        Application #{getAppNumber(app.id)} - {app.collateral_type} - ₹
                         {Number(app.requested_amount).toLocaleString()}
                       </option>
                     ))}
@@ -189,17 +195,16 @@ export default function Dashboard() {
                       <div className="flex justify-between items-start mb-3">
                         <div>
                           <span className="font-bold text-gray-900">
-                            Application {selectedApp.id}
+                            Application {getAppNumber(selectedApp.id)}
                           </span>
                         </div>
                         <span
-                          className={`text-xs px-2 py-1 rounded-md whitespace-nowrap ${
-                            selectedApp.status === "approved"
+                          className={`text-xs px-2 py-1 rounded-md whitespace-nowrap ${selectedApp.status === "approved"
                               ? "bg-green-100 text-green-900"
                               : selectedApp.status === "rejected"
                                 ? "bg-red-100 text-red-900"
                                 : "bg-amber-100 text-amber-900"
-                          }`}>
+                            }`}>
                           {selectedApp.status === "approved"
                             ? "✓ Approved"
                             : selectedApp.status === "rejected"

@@ -61,6 +61,20 @@ def get_document_display_filename(doc: DocumentMeta) -> str:
 EDITABLE_STATUSES = {"draft", "submitted", "verification_pending"}
 
 
+def get_user_application_number(session, user_id: int, app_id: int) -> int:
+    user_apps = session.exec(
+        select(LoanApplication)
+        .where(LoanApplication.user_id == user_id)
+        .order_by(LoanApplication.id.asc())
+    ).all()
+
+    for index, app in enumerate(user_apps, start=1):
+        if app.id == app_id:
+            return index
+
+    return 1
+
+
 def compute_valuation(
     session,
     collateral_type: str,
@@ -304,9 +318,11 @@ def create_application(payload: ApplicationIn, user=Depends(get_current_user)):
     session.add(app_obj)
     session.commit()
     session.refresh(app_obj)
+    application_number = get_user_application_number(session, user.id, app_obj.id)
     session.close()
     return {
         "application_id": app_obj.id,
+        "application_number": application_number,
         "valuation_estimate": valuation,
         "status": app_obj.status,
         "reviewed_by": app_obj.reviewed_by,
@@ -575,15 +591,16 @@ def list_my_applications(user=Depends(get_current_user)):
     stmt = (
         select(LoanApplication)
         .where(LoanApplication.user_id == user.id)
-        .order_by(LoanApplication.created_at.desc())
+        .order_by(LoanApplication.id.asc())
     )
     rows = session.exec(stmt).all()
-    session.close()
 
-    return {
-        "applications": [
+    apps = []
+    for index, r in enumerate(rows, start=1):
+        apps.append(
             {
                 "id": r.id,
+                "application_number": index,
                 "created_at": r.created_at if r.created_at else None,
                 "status": r.status,
                 "requested_amount": r.requested_amount,
@@ -599,9 +616,10 @@ def list_my_applications(user=Depends(get_current_user)):
                 "purity": r.purity,
                 "rejection_reason": r.rejection_reason,
             }
-            for r in rows
-        ]
-    }
+        )
+
+    session.close()
+    return {"applications": apps}
 
 
 @app.get("/applications/{app_id}", response_model=ApplicationOut)
@@ -843,8 +861,10 @@ async def finalize_application(
     session.commit()
 
     # --- Generate final sanction summary ---
+    app_number = get_user_application_number(session, user.id, app_obj.id)
     final_summary = {
-        "loan_id": f"LN-{app_obj.id:06}",
+        "loan_id": f"LN-{app_number:06}",
+        "application_number": app_number,
         "applicant_name": user.full_name,
         "selected_offer": selected_offer,
         "collateral_type": app_obj.collateral_type,

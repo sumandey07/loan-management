@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useCurrentApplication } from "../hooks/useCurrentApplication";
+import { getUserApplicationNumber } from "../utils/applicationNumber";
 
 export default function LoanApplicationPage() {
   const { token } = useAuth();
@@ -391,6 +392,9 @@ export default function LoanApplicationPage() {
           <div className="mt-6 bg-emerald-50 border border-emerald-200 text-emerald-900 px-4 py-3 rounded-lg text-sm">
             <p className="font-semibold mb-1">
               Application created successfully!
+            </p>
+            <p>
+              Application No: <span className="font-mono">{getUserApplicationNumber([...(result?.applications ?? [])], result.application_id) ?? result.application_number ?? result.application_id}</span>
             </p>
             <p>
               Application ID:{" "}

@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { CreditCard, Sparkles, ArrowRight, ClipboardList } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useCurrentApplication } from "../hooks/useCurrentApplication";
+import { getUserApplicationNumber } from "../utils/applicationNumber";
 
 const fetchMyApplications = async (token) => {
   const res = await fetch("http://localhost:8000/applications/mine", {
@@ -70,6 +71,8 @@ export default function OfferPage() {
   const selectedApp = applications.find(
     (app) => String(app.id) === selectedAppId,
   );
+
+  const getAppNumber = (appId) => getUserApplicationNumber(applications, appId);
 
   const {
     data: offers = [],
@@ -180,7 +183,7 @@ export default function OfferPage() {
                 className="w-full rounded-xl border border-gray-200 bg-white px-4   py-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-amber-400">
                 {applications.map((application) => (
                   <option key={application.id} value={application.id}>
-                    Application {application.id} — {application.status}
+                    Application {getAppNumber(application.id)} — {application.status}
                   </option>
                 ))}
               </select>
@@ -188,7 +191,7 @@ export default function OfferPage() {
               {selectedApp ? (
                 <div className="rounded-xl bg-white border border-gray-200 p-4 text-sm text-slate-700">
                   <p className="font-semibold text-slate-900">
-                    Application {selectedApp.id}
+                    Application {getAppNumber(selectedApp.id)}
                   </p>
                   <p className="mt-2 text-xs text-slate-500">
                     Collateral: {selectedApp.collateral_type}

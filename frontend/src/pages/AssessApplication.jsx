@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { ListChecks, FileSearch, ArrowRight, ShieldCheck } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useCurrentApplication } from "../hooks/useCurrentApplication";
+import { getUserApplicationNumber } from "../utils/applicationNumber";
 
 const fetchMyApplications = async (token) => {
   const res = await fetch("http://localhost:8000/applications/mine", {
@@ -147,6 +148,8 @@ export default function AssessApplication() {
     (app) => String(app.id) === selectedAppId,
   );
 
+  const getAppNumber = (appId) => getUserApplicationNumber(applications, appId);
+
   return (
     <div className="min-h-screen bg-gradient-to-r from-orange-300 to-amber-700 flex items-center justify-center px-4 py-10 mt-8">
       <div className="bg-white rounded-lg shadow-2xl max-w-6xl w-full p-8">
@@ -199,7 +202,7 @@ export default function AssessApplication() {
                 className="w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-amber-400">
                 {applications.map((app) => (
                   <option key={app.id} value={app.id}>
-                    Application {app.id} — {app.status}
+                    Application {getAppNumber(app.id)} — {app.status}
                   </option>
                 ))}
               </select>
@@ -208,7 +211,7 @@ export default function AssessApplication() {
                 <div className="rounded-lg bg-white border border-gray-200 p-4 text-sm text-slate-700">
                   <div className="flex items-center justify-between gap-3">
                     <p className="font-semibold text-slate-900">
-                      Application {selectedApp.id}
+                      Application {getAppNumber(selectedApp.id)}
                     </p>
                     <span className="rounded-lg bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-900">
                       {selectedApp.status}
