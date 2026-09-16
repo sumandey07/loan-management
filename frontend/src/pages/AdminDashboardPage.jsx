@@ -104,7 +104,7 @@ export default function AdminDashboardPage() {
               Review active customers, pending applications, and take actions on
               loan requests
             </p>
-            <p className="mt-2 text-sm font-semibold text-neutral-900">
+            <p className="mt-3 text-md font-bold text-white">
               Admin: {adminUsername || "Administrator"}
             </p>
           </div>

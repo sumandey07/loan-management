@@ -689,6 +689,18 @@ def update_application(
 async def chat_endpoint(payload: ChatMessage):
     try:
         user_text = payload.message
+        search_context = ""
+
+        if payload.web_search_results:
+            filtered_results = [
+                item.strip()
+                for item in payload.web_search_results
+                if item and item.strip()
+            ][:5]
+            if filtered_results:
+                search_context = "\n\nRelevant web search results:\n" + "\n".join(
+                    f"- {result}" for result in filtered_results
+                )
 
         prompt = f"""
             You are an AI Mortgage & Loan Compliance Assistant for customers in India.
@@ -699,16 +711,14 @@ async def chat_endpoint(payload: ChatMessage):
             If a state is not specified, assume India in general.
             If a question is unclear, ask for more details.
             Do not fabricate rules — only use widely known RBI and state guidelines.
+            Use the provided web search results as supporting context when available; cite them briefly if relevant.
             Provide answers in a friendly, professional, and easy-to-understand way.
-        User asked: {user_text}
+        User asked: {user_text}{search_context}
         """.strip()
 
         llm = get_llm()
 
-        # WORKING CALL — your model only accepts a single string
         completion = llm.invoke(prompt)
-
-        # Some models return an AIMessage object, others return a plain string
         reply = (
             completion.content if hasattr(completion, "content") else str(completion)
         )

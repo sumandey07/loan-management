@@ -73,6 +73,7 @@ export default function UploadDocumentNew() {
 
   // UI states
   const [loading, setLoading] = useState(false);
+  const [uploadingDoc, setUploadingDoc] = useState(null);
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [finalSummary, setFinalSummary] = useState(null);
@@ -210,11 +211,11 @@ export default function UploadDocumentNew() {
       return;
     }
 
-    if (loading) {
+    if (uploadingDoc === docType) {
       return;
     }
 
-    setLoading(true);
+    setUploadingDoc(docType);
     try {
       const formData = new FormData();
       formData.append("doc_type", docType);
@@ -274,15 +275,13 @@ export default function UploadDocumentNew() {
       });
 
       toast.success(`${docType.replace("_", " ")} uploaded successfully`);
-
-      // Reset file inputs
+    } catch (e) {
+      toast.error(e.message || "Failed to upload document");
       if (docType === "salary_slip") setSalarySlipFile(null);
       else if (docType === "bank_statement") setBankStatementFile(null);
       else setPropertyOrGoldFile(null);
-    } catch (e) {
-      toast.error(e.message || "Failed to upload document");
     } finally {
-      setLoading(false);
+      setUploadingDoc(null);
     }
   };
 
@@ -410,54 +409,58 @@ export default function UploadDocumentNew() {
     return `${Math.round(bytes / 1024)} KB`;
   };
 
-  const DocUploadCard = ({ title, docType, file, setFile, uploaded }) => (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="rounded-lg border border-gray-200 bg-white p-6">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <FileText className="h-5 w-5 text-amber-500" />
-          <h3 className="font-semibold text-slate-900">{title}</h3>
-        </div>
-        {uploaded && <CheckCircle2 className="h-5 w-5 text-emerald-500" />}
-      </div>
+  const DocUploadCard = ({ title, docType, file, setFile, uploaded }) => {
+    const isUploading = uploadingDoc === docType;
 
-      <div>
-        <input
-          type="file"
-          accept=".pdf,image/*"
-          onChange={(e) => setFile(e.target.files[0])}
-          className="mb-3 w-full"
-        />
-        {file && (
-          <div className="mb-3 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
-            Selected file: <span className="font-semibold break-all">{file.name}</span>
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="rounded-lg border border-gray-200 bg-white p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <FileText className="h-5 w-5 text-amber-500" />
+            <h3 className="font-semibold text-slate-900">{title}</h3>
+          </div>
+          {uploaded && <CheckCircle2 className="h-5 w-5 text-emerald-500" />}
+        </div>
+
+        <div>
+          <input
+            type="file"
+            accept=".pdf,image/*"
+            onChange={(e) => setFile(e.target.files[0])}
+            className="mb-3 w-full"
+          />
+          {file && (
+            <div className="mb-3 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+              Selected file: <span className="font-semibold break-all">{file.name}</span>
+            </div>
+          )}
+          <button
+            type="button"
+            onClick={() => uploadDocument(docType, file)}
+            disabled={!file || isUploading}
+            className="w-full rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-black hover:bg-amber-600 disabled:opacity-60">
+            {isUploading ? "Uploading..." : uploaded ? `Update ${title}` : `Upload ${title}`}
+          </button>
+        </div>
+        {uploaded && (
+          <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 mt-6">
+            <p className="text-sm text-emerald-900">
+              <strong className="break-words">
+                {uploaded.display_filename || uploaded.filename}
+              </strong>
+              <br />
+              <span className="text-xs text-emerald-700">
+                {formatFileSize(uploaded.size_bytes)}
+              </span>
+            </p>
           </div>
         )}
-        <button
-          type="button"
-          onClick={() => uploadDocument(docType, file)}
-          disabled={!file || loading}
-          className="w-full rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-black hover:bg-amber-600 disabled:opacity-60">
-          {loading ? "Uploading..." : uploaded ? `Update ${title}` : `Upload ${title}`}
-        </button>
-      </div>
-      {uploaded && (
-        <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 mt-6">
-          <p className="text-sm text-emerald-900">
-            <strong className="break-words">
-              {uploaded.display_filename || uploaded.filename}
-            </strong>
-            <br />
-            <span className="text-xs text-emerald-700">
-              {formatFileSize(uploaded.size_bytes)}
-            </span>
-          </p>
-        </div>
-      )}
-    </motion.div>
-  );
+      </motion.div>
+    );
+  };
 
   // ============ Loading & Error States ============
   if (isLoading) {

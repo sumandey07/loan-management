@@ -16,6 +16,7 @@ export default function ChatWidget() {
     },
   ]);
   const [loading, setLoading] = useState(false);
+  const [useWebSearch, setUseWebSearch] = useState(true);
 
   const bottomRef = useRef();
 
@@ -23,26 +24,72 @@ export default function ChatWidget() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  async function sendMessage() {
-    if (!input.trim()) return;
+  const searchWeb = async (query) => {
+    const searchUrl = `https://api.duckduckgo.com/?q=${encodeURIComponent(
+      query,
+    )}&format=json&no_redirect=1&no_html=1&skip_disambig=1`;
 
-    const userMessage = { sender: "user", text: input };
+    try {
+      const res = await fetch(searchUrl, {
+        headers: { Accept: "application/json" },
+      });
+
+      if (!res.ok) return [];
+
+      const data = await res.json();
+      const results = [];
+
+      if (data?.AbstractText) {
+        results.push(`${data.AbstractSource || "DuckDuckGo"}: ${data.AbstractText}`);
+      }
+
+      const topics = Array.isArray(data?.RelatedTopics) ? data.RelatedTopics : [];
+      topics.forEach((topic) => {
+        if (topic?.Text) results.push(topic.Text);
+        if (Array.isArray(topic?.Topics)) {
+          topic.Topics.forEach((nestedTopic) => {
+            if (nestedTopic?.Text) results.push(nestedTopic.Text);
+          });
+        }
+      });
+
+      return results.slice(0, 5);
+    } catch (error) {
+      console.error("Web search failed:", error);
+      return [];
+    }
+  };
+
+  async function sendMessage() {
+    const trimmedInput = input.trim();
+    if (!trimmedInput) return;
+
+    const userMessage = { sender: "user", text: trimmedInput };
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setLoading(true);
 
     try {
+      const webSearchResults = useWebSearch ? await searchWeb(trimmedInput) : [];
+
       const res = await fetch("http://localhost:8000/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: userMessage.text }),
+        body: JSON.stringify({
+          message: userMessage.text,
+          web_search_results: webSearchResults,
+        }),
       });
 
       const data = await res.json();
+      const responseText =
+        typeof data.response === "string"
+          ? data.response
+          : data.response?.[0]?.text || "Sorry, I could not process that.";
 
       const botMessage = {
         sender: "bot",
-        text: data.response?.[0]?.text || "Sorry, I could not process that.",
+        text: responseText,
       };
 
       setMessages((prev) => [...prev, botMessage]);
@@ -87,15 +134,13 @@ export default function ChatWidget() {
             {messages.map((msg, index) => (
               <div
                 key={index}
-                className={`flex my-2 ${
-                  msg.sender === "user" ? "justify-end" : "justify-start"
-                }`}>
+                className={`flex my-2 ${msg.sender === "user" ? "justify-end" : "justify-start"
+                  }`}>
                 <div
-                  className={`px-4 py-2 max-w-[75%] rounded-md shadow text-sm ${
-                    msg.sender === "user"
+                  className={`px-4 py-2 max-w-[75%] rounded-md shadow text-sm ${msg.sender === "user"
                       ? "bg-sky-700 text-white rounded-br-none"
                       : "bg-white text-gray-800 border rounded-bl-none"
-                  }`}>
+                    }`}>
                   {msg.sender === "bot" ? (
                     <ReactMarkdown
                       components={{
@@ -137,19 +182,32 @@ export default function ChatWidget() {
           </div>
 
           {/* Input Box */}
-          <div className="p-3 border-t text-black flex gap-2">
-            <input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={handleKey}
-              placeholder="Ask something..."
-              className="flex-1 border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
-            />
-            <button
-              onClick={sendMessage}
-              className="bg-sky-700 text-white px-4 rounded-md hover:bg-sky-800">
-              <PaperAirplaneIcon className="w-5 h-5" />
-            </button>
+          <div className="p-3 border-t text-black flex flex-col gap-2">
+            <div className="flex items-center justify-between gap-2">
+              <button
+                type="button"
+                onClick={() => setUseWebSearch((prev) => !prev)}
+                className={`rounded-full px-2.5 py-1 text-[11px] font-semibold border ${useWebSearch
+                    ? "border-sky-600 bg-sky-100 text-sky-700"
+                    : "border-slate-300 bg-white text-slate-600"
+                  }`}>
+                {useWebSearch ? "Web search on" : "Web search off"}
+              </button>
+            </div>
+            <div className="flex gap-2">
+              <input
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKey}
+                placeholder="Ask something..."
+                className="flex-1 border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
+              />
+              <button
+                onClick={sendMessage}
+                className="bg-sky-700 text-white px-4 rounded-md hover:bg-sky-800">
+                <PaperAirplaneIcon className="w-5 h-5" />
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -207,6 +207,7 @@ class ApplicationOut(BaseModel):
 
 class ChatMessage(BaseModel):
     message: str
+    web_search_results: Optional[List[str]] = None
 
 
 class AdminLoginIn(BaseModel):
