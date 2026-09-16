@@ -25,6 +25,7 @@ export default function AdminLoginPage() {
 
     const data = await res.json();
     localStorage.setItem("admin_token", data.access_token);
+    localStorage.setItem("admin_username", data.username || form.username);
 
     navigate("/admin-dashboard");
     toast.success("Admin logged In successfully");

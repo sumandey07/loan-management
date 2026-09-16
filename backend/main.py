@@ -30,6 +30,7 @@ from models import (
     DocumentMeta,
     Admin,
     get_session,
+    init_db,
 )
 
 from auth import hash_password, authenticate_user, create_access_token, decode_token
@@ -42,6 +43,20 @@ from routes.kyc_verify import router as kyc_router
 
 UPLOAD_DIR = "uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
+
+DOCUMENT_DISPLAY_NAMES = {
+    "salary_slip": "income_proof",
+    "bank_statement": "bank_document",
+    "property_doc": "property_document",
+    "gold_doc": "gold_document",
+}
+
+
+def get_document_display_filename(doc: DocumentMeta) -> str:
+    extension = os.path.splitext(doc.filename)[1].lower() or ".pdf"
+    name = DOCUMENT_DISPLAY_NAMES.get(doc.doc_type, "uploaded_document")
+    return f"{name}{extension}"
+
 
 EDITABLE_STATUSES = {"draft", "submitted", "verification_pending"}
 
@@ -74,6 +89,12 @@ def compute_valuation(
 
 
 app = FastAPI()
+
+
+@app.on_event("startup")
+def startup():
+    init_db()
+
 
 app.include_router(kyc_otp_router, prefix="/kyc", tags=["KYC"])
 app.include_router(kyc_router, prefix="/kyc", tags=["KYC"])
@@ -213,6 +234,31 @@ def dashboard_snapshot(user=Depends(get_current_user)):
     return snapshot
 
 
+def apply_llm_review(app_obj, reviewed_by="llm"):
+    llm_result = llm_final_offer(
+        summary={
+            "requested_amount": app_obj.requested_amount,
+            "tenure_years": app_obj.tenure_years,
+            "valuation_estimate": app_obj.valuation_estimate,
+            "existing_emi": app_obj.existing_emi,
+        },
+        user_data={
+            "credit_score": app_obj.credit_score,
+            "annual_income": app_obj.annual_income,
+            "collateral_type": app_obj.collateral_type,
+            "region": app_obj.region,
+        },
+    )
+
+    app_obj.llm_risk_level = llm_result.get("risk_level") or llm_result.get("risk")
+    app_obj.llm_max_loan = llm_result.get("max_loan_amount")
+    app_obj.llm_recommended_roi = llm_result.get("recommended_roi")
+    app_obj.llm_explanation = llm_result.get("explanation")
+    app_obj.llm_reviewed_at = datetime.now(IST)
+    app_obj.reviewed_by = reviewed_by
+    return llm_result
+
+
 @app.post("/applications")
 def create_application(payload: ApplicationIn, user=Depends(get_current_user)):
     session = get_session()
@@ -253,7 +299,8 @@ def create_application(payload: ApplicationIn, user=Depends(get_current_user)):
         )
     else:
         raise HTTPException(status_code=400, detail="Invalid collateral_type")
-    print(app_obj)
+
+    apply_llm_review(app_obj)
     session.add(app_obj)
     session.commit()
     session.refresh(app_obj)
@@ -262,6 +309,12 @@ def create_application(payload: ApplicationIn, user=Depends(get_current_user)):
         "application_id": app_obj.id,
         "valuation_estimate": valuation,
         "status": app_obj.status,
+        "reviewed_by": app_obj.reviewed_by,
+        "llm_reviewed_at": app_obj.llm_reviewed_at,
+        "llm_risk_level": app_obj.llm_risk_level,
+        "llm_max_loan": app_obj.llm_max_loan,
+        "llm_recommended_roi": app_obj.llm_recommended_roi,
+        "llm_explanation": app_obj.llm_explanation,
     }
 
 
@@ -276,12 +329,22 @@ def submit_application(app_id: int, user=Depends(get_current_user)):
             status_code=400,
             detail="Only draft applications can be submitted",
         )
+    apply_llm_review(app_obj)
     app_obj.status = "submitted"
     session.add(app_obj)
     session.commit()
     session.refresh(app_obj)
     session.close()
-    return {"application_id": app_id, "status": app_obj.status}
+    return {
+        "application_id": app_id,
+        "status": app_obj.status,
+        "reviewed_by": app_obj.reviewed_by,
+        "llm_reviewed_at": app_obj.llm_reviewed_at,
+        "llm_risk_level": app_obj.llm_risk_level,
+        "llm_max_loan": app_obj.llm_max_loan,
+        "llm_recommended_roi": app_obj.llm_recommended_roi,
+        "llm_explanation": app_obj.llm_explanation,
+    }
 
 
 # --------- Upload document ----------
@@ -290,6 +353,7 @@ async def upload_document(
     app_id: int,
     doc_type: str = Form(...),
     file: UploadFile = File(...),
+    document_id: int | None = Form(None),
     user=Depends(get_current_user),
 ):
     if file.content_type not in ("application/pdf", "image/png", "image/jpeg"):
@@ -301,25 +365,44 @@ async def upload_document(
         session.close()
         raise HTTPException(status_code=404, detail="Application not found")
 
+    existing_doc = None
+    if document_id is not None:
+        existing_doc = session.get(DocumentMeta, document_id)
+        if (
+            not existing_doc
+            or existing_doc.application_id != app_id
+            or existing_doc.user_id != user.id
+        ):
+            session.close()
+            raise HTTPException(status_code=404, detail="Document not found")
+
     filename = f"{uuid.uuid4().hex}_{file.filename}"
     dest_path = os.path.join(UPLOAD_DIR, filename)
     content = await file.read()
     with open(dest_path, "wb") as buffer:
         buffer.write(content)
 
-    doc = DocumentMeta(
-        application_id=app_id,
-        user_id=user.id,
-        doc_type=doc_type,
-        filename=filename,
-        mime_type=file.content_type,
-        size_bytes=len(content),
-    )
+    doc = existing_doc or DocumentMeta(application_id=app_id, user_id=user.id)
+    old_filename = doc.filename if existing_doc else None
+    doc.doc_type = doc_type
+    doc.filename = filename
+    doc.mime_type = file.content_type
+    doc.size_bytes = len(content)
     session.add(doc)
     session.commit()
     session.refresh(doc)
     session.close()
-    return {"doc_id": doc.id, "filename": filename, "doc_type": doc_type}
+    if old_filename and old_filename != filename:
+        old_path = os.path.join(UPLOAD_DIR, old_filename)
+        if os.path.exists(old_path):
+            os.remove(old_path)
+    return {
+        "doc_id": doc.id,
+        "filename": filename,
+        "display_filename": get_document_display_filename(doc),
+        "doc_type": doc_type,
+        "size_bytes": doc.size_bytes,
+    }
 
 
 @app.post("/admin/login", response_model=AdminTokenResp)
@@ -338,7 +421,7 @@ def admin_login(payload: AdminLoginIn):
         raise HTTPException(status_code=401, detail="Invalid admin credentials")
 
     access_token = create_access_token({"admin_id": admin.id, "role": "admin"})
-    return {"access_token": access_token}
+    return {"access_token": access_token, "username": admin.username}
 
 
 def get_current_admin(authorization: str = Header(...)):
@@ -361,6 +444,11 @@ def get_current_admin(authorization: str = Header(...)):
         raise HTTPException(status_code=401, detail="Unauthorized")
 
     return admin
+
+
+@app.get("/admin/me")
+def get_admin_identity(admin=Depends(get_current_admin)):
+    return {"username": admin.username}
 
 
 @app.get("/admin/customers")
@@ -396,6 +484,8 @@ def admin_update_application_status(
         raise HTTPException(status_code=400, detail="Invalid status")
 
     app_obj.status = new_status
+    app_obj.reviewed_by = "system"
+    app_obj.llm_reviewed_at = datetime.now(IST)
     if new_status == "rejected" and rejection_reason:
         app_obj.rejection_reason = rejection_reason
     session.add(app_obj)
@@ -507,6 +597,7 @@ def list_my_applications(user=Depends(get_current_user)):
                 "annual_income": r.annual_income,
                 "gold_weight_grams": r.gold_weight_grams,
                 "purity": r.purity,
+                "rejection_reason": r.rejection_reason,
             }
             for r in rows
         ]
@@ -635,30 +726,13 @@ def admin_llm_review(
             detail="LLM review allowed only for submitted applications",
         )
 
-    # ---- Call your existing LLM function ----
-    llm_result = llm_final_offer(
-        summary={
-            "requested_amount": app_obj.requested_amount,
-            "tenure_years": app_obj.tenure_years,
-            "valuation_estimate": app_obj.valuation_estimate,
-            "existing_emi": app_obj.existing_emi,
-        },
-        user_data={
-            "credit_score": app_obj.credit_score,
-            "annual_income": app_obj.annual_income,
-            "collateral_type": app_obj.collateral_type,
-            "region": app_obj.region,
-        },
-    )
+    llm_result = apply_llm_review(app_obj)
 
     # ---- Persist results ----
     app_obj.llm_risk_level = llm_result.get("risk")
     app_obj.llm_max_loan = llm_result.get("max_loan_amount")
     app_obj.llm_recommended_roi = llm_result.get("recommended_roi")
     app_obj.llm_explanation = llm_result.get("explanation")
-
-    app_obj.llm_reviewed_by = admin.username
-    app_obj.llm_reviewed_at = datetime.now(IST)
 
     session.commit()
     session.refresh(app_obj)
@@ -821,4 +895,12 @@ def list_application_documents(app_id: int, user=Depends(get_current_user)):
         select(DocumentMeta).where(DocumentMeta.application_id == app_id)
     ).all()
     session.close()
-    return {"documents": [d.dict() for d in docs]}
+    return {
+        "documents": [
+            {
+                **d.dict(),
+                "display_filename": get_document_display_filename(d),
+            }
+            for d in docs
+        ]
+    }

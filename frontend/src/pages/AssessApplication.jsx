@@ -95,7 +95,7 @@ export default function AssessApplication() {
   if (appsLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-r from-orange-300 to-amber-700 flex items-center justify-center px-4">
-        <div className="text-white text-lg animate-pulse">
+        <div className="text-white text-lg font-semibold animate-pulse">
           Loading applications...
         </div>
       </div>
@@ -114,7 +114,7 @@ export default function AssessApplication() {
           </p>
           <button
             onClick={() => window.location.reload()}
-            className="bg-amber-500 hover:bg-amber-600 text-black font-semibold px-6 py-2.5 rounded-full shadow-md">
+            className="bg-amber-500 hover:bg-amber-600 text-black font-semibold px-6 py-2.5 rounded-lg shadow-md">
             Retry
           </button>
         </div>
@@ -135,7 +135,7 @@ export default function AssessApplication() {
           </p>
           <button
             onClick={() => navigate("/loan-application")}
-            className="bg-amber-500 hover:bg-amber-600 text-black font-semibold px-6 py-2.5 rounded-full shadow-md">
+            className="bg-amber-500 hover:bg-amber-600 text-black font-semibold px-6 py-2.5 rounded-xl shadow-md">
             Go to Loan Application
           </button>
         </div>
@@ -149,10 +149,10 @@ export default function AssessApplication() {
 
   return (
     <div className="min-h-screen bg-gradient-to-r from-orange-300 to-amber-700 flex items-center justify-center px-4 py-10 mt-8">
-      <div className="bg-white rounded-3xl shadow-2xl max-w-6xl w-full p-8">
+      <div className="bg-white rounded-lg shadow-2xl max-w-6xl w-full p-8">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-5">
           <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-amber-100 px-4 py-2 text-sm text-amber-900 font-semibold">
+            <div className="inline-flex items-center gap-2 rounded-lg bg-amber-100 px-4 py-2 text-sm text-amber-900 font-semibold">
               <ShieldCheck className="h-4 w-4" />
               Risk assessment
             </div>
@@ -166,7 +166,7 @@ export default function AssessApplication() {
           </div>
           <button
             onClick={() => navigate("/loan-application")}
-            className="cursor-pointer inline-flex items-center gap-2 rounded-full bg-black px-5 py-2 text-sm font-semibold text-white hover:bg-zinc-900 transition">
+            className="cursor-pointer inline-flex items-center gap-2 rounded-xl bg-black px-5 py-2 text-sm font-semibold text-white hover:bg-zinc-900 transition">
             <ArrowRight className="h-4 w-4" />
             Create new application
           </button>
@@ -177,7 +177,7 @@ export default function AssessApplication() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
           className="grid gap-4 md:grid-cols-[1.5fr_1fr]">
-          <div className="space-y-4 rounded-3xl border border-slate-200 bg-slate-50 p-6">
+          <div className="space-y-4 rounded-lg border border-slate-200 bg-slate-50 p-6">
             <div className="flex items-center justify-between gap-3">
               <div>
                 <p className="text-xs uppercase tracking-[0.28em] text-slate-500">
@@ -196,7 +196,7 @@ export default function AssessApplication() {
                   setSelectedAppId(e.target.value);
                   saveCurrentAppId(Number(e.target.value));
                 }}
-                className="w-full rounded-3xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-amber-400">
+                className="w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-amber-400">
                 {applications.map((app) => (
                   <option key={app.id} value={app.id}>
                     Application {app.id} — {app.status}
@@ -205,12 +205,12 @@ export default function AssessApplication() {
               </select>
 
               {selectedApp ? (
-                <div className="rounded-3xl bg-white border border-gray-200 p-4 text-sm text-slate-700">
+                <div className="rounded-lg bg-white border border-gray-200 p-4 text-sm text-slate-700">
                   <div className="flex items-center justify-between gap-3">
                     <p className="font-semibold text-slate-900">
                       Application {selectedApp.id}
                     </p>
-                    <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-900">
+                    <span className="rounded-lg bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-900">
                       {selectedApp.status}
                     </span>
                   </div>
@@ -250,13 +250,13 @@ export default function AssessApplication() {
             <button
               onClick={handleAssess}
               disabled={loading}
-              className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full bg-amber-500 px-5 py-3 text-sm font-semibold text-black hover:bg-amber-600 disabled:cursor-not-allowed disabled:opacity-60">
+              className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-amber-500 px-5 py-3 text-sm font-semibold text-white hover:bg-amber-600 disabled:cursor-not-allowed disabled:opacity-60">
               <ListChecks className="h-4 w-4" />
               {loading ? "Assessing..." : "Assess selected application"}
             </button>
           </div>
 
-          <div className="rounded-3xl border border-slate-200 bg-white p-6 text-sm text-slate-700">
+          <div className="rounded-lg border border-slate-200 bg-white p-6 text-sm text-slate-700">
             <p className="text-xs uppercase tracking-[0.28em] text-slate-500">
               Insights panel
             </p>
@@ -310,15 +310,14 @@ export default function AssessApplication() {
                 </p>
               </div>
               <span
-                className={`rounded-full px-4 py-2 text-xs font-semibold text-white ${
-                  assessment.risk_level?.toLowerCase() === "high"
-                    ? "bg-red-600"
-                    : assessment.risk_level?.toLowerCase() === "medium"
-                      ? "bg-orange-500"
-                      : assessment.risk_level?.toLowerCase() === "low"
-                        ? "bg-green-600"
-                        : "bg-gray-500"
-                }`}>
+                className={`rounded-lg px-4 py-2 text-xs font-semibold text-white ${assessment.risk_level?.toLowerCase() === "high"
+                  ? "bg-red-600"
+                  : assessment.risk_level?.toLowerCase() === "medium"
+                    ? "bg-orange-500"
+                    : assessment.risk_level?.toLowerCase() === "low"
+                      ? "bg-green-600"
+                      : "bg-gray-500"
+                  }`}>
                 {assessment.risk_level ?? "N/A"} Risk
               </span>
             </div>
@@ -337,7 +336,7 @@ export default function AssessApplication() {
                   Key reasons
                 </p>
                 {Array.isArray(assessment.key_reasons) &&
-                assessment.key_reasons.length > 0 ? (
+                  assessment.key_reasons.length > 0 ? (
                   <ul className="mt-3 space-y-2 text-sm text-slate-700">
                     {assessment.key_reasons.map((reason, index) => (
                       <li
@@ -358,7 +357,7 @@ export default function AssessApplication() {
             <div className="mt-6 flex flex-wrap gap-3">
               <button
                 onClick={() => navigate("/offers")}
-                className="rounded-full bg-black px-5 py-3 text-sm font-semibold text-white hover:bg-zinc-900 transition">
+                className="rounded-lg bg-black px-5 py-3 text-sm font-semibold text-white hover:bg-zinc-900 transition">
                 View offers for this application
               </button>
             </div>

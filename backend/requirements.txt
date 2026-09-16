@@ -8,8 +8,10 @@ python-multipart
 pydantic
 aiofiles
 langchain
+langchain-google-genai
 openai
 python-dotenv
+psycopg[binary]
 argon2_cffi
 easyocr
 tzdata

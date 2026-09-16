@@ -4,6 +4,7 @@ import { LockKeyhole } from "lucide-react";
 
 export default function AdminDashboardPage() {
   const token = localStorage.getItem("admin_token");
+  const adminUsername = localStorage.getItem("admin_username");
   const [customers, setCustomers] = useState([]);
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -78,7 +79,7 @@ export default function AdminDashboardPage() {
   if (loading)
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-orange-300 to-amber-700 text-white">
-        <div className="rounded-[28px] border border-slate-200 bg-white px-8 py-6 text-lg shadow-xl text-slate-900">
+        <div className="rounded-lg px-8 py-6 text-xl text-white font-bold">
           Loading admin panel...
         </div>
       </div>
@@ -103,15 +104,18 @@ export default function AdminDashboardPage() {
               Review active customers, pending applications, and take actions on
               loan requests
             </p>
+            <p className="mt-2 text-sm font-semibold text-neutral-900">
+              Admin: {adminUsername || "Administrator"}
+            </p>
           </div>
-          <div className="rounded-full border border-slate-200 justify-center items-center flex flex-row font-bold bg-green-100 select-none px-4 py-2 text-sm text-green-500 shadow-lg">
+          <div className="rounded-lg border border-slate-200 justify-center items-center flex flex-row font-bold bg-green-100 select-none px-4 py-2 text-sm text-green-500 shadow-lg">
             <LockKeyhole className="inline-block h-4 w-4 mr-2 font-bold" />
             Secure Admin View
           </div>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-3 mb-10">
-          <div className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-lg text-slate-900">
+          <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-lg text-slate-900">
             <p className="text-sm uppercase tracking-[0.28em] font-semibold text-amber-600">
               Customers
             </p>
@@ -120,14 +124,14 @@ export default function AdminDashboardPage() {
               Active customer accounts
             </p>
           </div>
-          <div className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-lg text-slate-900">
+          <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-lg text-slate-900">
             <p className="text-sm uppercase tracking-[0.28em] font-semibold text-amber-600">
               Applications
             </p>
             <p className="mt-4 text-3xl font-semibold">{applications.length}</p>
             <p className="mt-2 text-sm text-slate-600">Total loan requests</p>
           </div>
-          <div className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-lg text-slate-900">
+          <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-lg text-slate-900">
             <p className="text-sm uppercase tracking-[0.28em] font-semibold text-amber-600">
               Pending
             </p>
@@ -137,7 +141,7 @@ export default function AdminDashboardPage() {
         </div>
 
         <div className="grid gap-6 xl:grid-cols-[1.35fr_0.85fr]">
-          <section className="rounded-[32px] border border-slate-200 bg-white pt-9 pb-11 px-10 shadow-xl text-slate-900">
+          <section className="rounded-xl border border-slate-200 bg-white pt-9 pb-11 px-10 shadow-xl text-slate-900">
             <div className="flex items-center justify-between gap-4">
               <div>
                 <h2 className="text-xl font-semibold">Loan Applications</h2>
@@ -145,7 +149,7 @@ export default function AdminDashboardPage() {
                   Review and manage submitted loan applications
                 </p>
               </div>
-              <span className="rounded-full bg-slate-900 px-4 py-1 text-xs uppercase tracking-[0.24em] font-semibold text-slate-100">
+              <span className="rounded-lg bg-slate-900 px-4 py-1 text-xs uppercase tracking-[0.24em] font-semibold text-slate-100">
                 {applications.length} total
               </span>
             </div>
@@ -177,21 +181,21 @@ export default function AdminDashboardPage() {
                       </td>
                       <td className="py-4 pr-4">
                         <span
-                          className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${app.status === "submitted" ? "bg-teal-200 text-teal-800" : "bg-amber-200 text-amber-800"}`}>
+                          className={`inline-flex rounded-lg px-3 py-1 text-xs font-semibold ${app.status === "submitted" ? "bg-teal-200 text-teal-800" : "bg-amber-200 text-amber-800"}`}>
                           {app.status}
                         </span>
                       </td>
                       <td className="py-4 text-right">
                         {app.status === "submitted" ? (
-                          <div className="inline-flex gap-2">
+                          <div className="inline-flex gap-4">
                             <button
                               onClick={() => updateStatus(app.id, "approved")}
-                              className="rounded-full bg-emerald-500 px-3 py-2 text-xs font-semibold text-slate-950 transition hover:bg-emerald-400">
+                              className="rounded-lg bg-emerald-500 px-3 py-2 text-xs font-semibold text-slate-950 transition hover:bg-emerald-400">
                               Approve
                             </button>
                             <button
                               onClick={() => handleRejectClick(app.id)}
-                              className="rounded-full bg-red-500 px-3 py-2 text-xs font-semibold text-white transition hover:bg-red-400">
+                              className="rounded-lg bg-red-500 px-3 py-2 text-xs font-semibold text-white transition hover:bg-red-400">
                               Reject
                             </button>
                           </div>
@@ -210,7 +214,7 @@ export default function AdminDashboardPage() {
             </div>
           </section>
 
-          <section className="rounded-[32px] border border-slate-200 bg-white pt-8 pb-10 px-9 shadow-xl text-slate-900">
+          <section className="rounded-xl border border-slate-200 bg-white pt-8 pb-10 px-9 shadow-xl text-slate-900">
             <div className="flex items-center justify-between gap-4">
               <div>
                 <h2 className="text-xl font-semibold">Customer Snapshot</h2>
@@ -218,7 +222,7 @@ export default function AdminDashboardPage() {
                   Overview of registered customers
                 </p>
               </div>
-              <span className="rounded-full bg-slate-900 px-4 py-1 text-xs uppercase font-semibold text-slate-100">
+              <span className="rounded-lg bg-slate-900 px-4 py-2 text-xs uppercase font-semibold text-slate-100">
                 {customers.length}
               </span>
             </div>
@@ -227,7 +231,7 @@ export default function AdminDashboardPage() {
               {customers.map((customer) => (
                 <div
                   key={customer.id}
-                  className="rounded-3xl border border-slate-400 bg-white p-4 text-slate-900">
+                  className="rounded-lg border border-slate-400 bg-white p-4 text-slate-900">
                   <p className="font-semibold">
                     {customer.full_name || "Unknown customer"}
                   </p>
@@ -246,7 +250,7 @@ export default function AdminDashboardPage() {
         {/* Rejection Modal */}
         {rejectionModal.isOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-            <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-2xl w-96 text-slate-900">
+            <div className="rounded-xl border border-slate-200 bg-white p-8 shadow-2xl w-96 text-slate-900">
               <h3 className="text-xl font-semibold mb-4">Reject Application</h3>
               <p className="text-sm text-slate-600 mb-4">
                 Please provide a reason for rejection:
@@ -272,12 +276,12 @@ export default function AdminDashboardPage() {
                       reason: "",
                     })
                   }
-                  className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-900 transition hover:bg-slate-100">
+                  className="rounded-xl border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-900 transition hover:bg-slate-100">
                   Cancel
                 </button>
                 <button
                   onClick={handleSubmitRejection}
-                  className="rounded-full bg-red-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-400">
+                  className="rounded-xl bg-red-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-400">
                   Submit Rejection
                 </button>
               </div>

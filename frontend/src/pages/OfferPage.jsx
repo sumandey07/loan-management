@@ -94,7 +94,7 @@ export default function OfferPage() {
   if (appsError) {
     return (
       <div className="min-h-screen bg-gradient-to-r from-orange-300 to-amber-700 flex items-center justify-center px-4">
-        <div className="bg-white rounded-2xl shadow-2xl max-w-xl w-full p-10 text-center">
+        <div className="bg-white rounded-lg shadow-2xl max-w-xl w-full p-10 text-center">
           <h2 className="text-2xl font-bold mb-3 text-gray-900">
             Unable to find applications
           </h2>
@@ -103,7 +103,7 @@ export default function OfferPage() {
           </p>
           <button
             onClick={() => navigate("/loan-application")}
-            className="bg-amber-500 hover:bg-amber-600 text-black font-semibold px-6 py-2.5 rounded-full shadow-md">
+            className="bg-amber-500 hover:bg-amber-600 text-black font-semibold px-6 py-2.5 rounded-lg shadow-md">
             Go to Loan Application
           </button>
         </div>
@@ -114,7 +114,7 @@ export default function OfferPage() {
   if (applications.length === 0) {
     return (
       <div className="min-h-screen bg-gradient-to-r from-orange-300 to-amber-700 flex items-center justify-center px-4">
-        <div className="bg-white rounded-2xl shadow-2xl max-w-xl w-full p-10 text-center">
+        <div className="bg-white rounded-lg shadow-2xl max-w-xl w-full p-10 text-center">
           <h2 className="text-2xl font-bold mb-3 text-gray-900">
             No applications available
           </h2>
@@ -123,7 +123,7 @@ export default function OfferPage() {
           </p>
           <button
             onClick={() => navigate("/loan-application")}
-            className="bg-amber-500 hover:bg-amber-600 text-black font-semibold px-6 py-2.5 rounded-full shadow-md">
+            className="bg-amber-500 hover:bg-amber-600 text-black font-semibold px-6 py-2.5 rounded-lg shadow-md">
             Create Application
           </button>
         </div>
@@ -133,7 +133,7 @@ export default function OfferPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-r from-orange-300 to-amber-700 flex items-center justify-center px-4 py-10 mt-8">
-      <div className="bg-white rounded-3xl shadow-2xl max-w-6xl w-full p-8 h-[36rem] overflow-hidden">
+      <div className="bg-white rounded-xl shadow-2xl max-w-6xl w-full p-8 h-[36rem] overflow-hidden">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-8">
           <div>
             <p className="text-xs uppercase font-semibold tracking-[0.3em] text-amber-500">
@@ -149,7 +149,7 @@ export default function OfferPage() {
           </div>
           <button
             onClick={() => navigate("/loan-application")}
-            className="cursor-pointer inline-flex items-center gap-2 rounded-full bg-black px-5 py-2 text-sm font-semibold text-white hover:bg-zinc-900 transition">
+            className="cursor-pointer inline-flex items-center gap-2 rounded-lg bg-black px-5 py-2 text-sm font-semibold text-white hover:bg-zinc-900 transition">
             <ArrowRight className="h-4 w-4" />
             Create New Application
           </button>
@@ -160,7 +160,7 @@ export default function OfferPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
           className="grid gap-6 lg:grid-cols-[320px_1fr]">
-          <div className="space-y-5 rounded-3xl border border-slate-200 bg-slate-50 p-5">
+          <div className="space-y-5 rounded-xl border border-slate-200 bg-slate-50 p-5">
             <div>
               <h2 className="text-lg font-semibold text-gray-900">
                 Choose application
@@ -177,7 +177,7 @@ export default function OfferPage() {
                   setSelectedAppId(e.target.value);
                   saveCurrentAppId(Number(e.target.value));
                 }}
-                className="w-full rounded-3xl border border-gray-200 bg-white px-4   py-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-amber-400">
+                className="w-full rounded-xl border border-gray-200 bg-white px-4   py-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-amber-400">
                 {applications.map((application) => (
                   <option key={application.id} value={application.id}>
                     Application {application.id} — {application.status}
@@ -186,7 +186,7 @@ export default function OfferPage() {
               </select>
 
               {selectedApp ? (
-                <div className="rounded-3xl bg-white border border-gray-200 p-4 text-sm text-slate-700">
+                <div className="rounded-xl bg-white border border-gray-200 p-4 text-sm text-slate-700">
                   <p className="font-semibold text-slate-900">
                     Application {selectedApp.id}
                   </p>
@@ -211,7 +211,7 @@ export default function OfferPage() {
             </div>
           </div>
 
-          <div className="rounded-3xl border border-slate-200 bg-white p-5 w-full h-[25rem] overflow-hidden">
+          <div className="rounded-xl border border-slate-200 bg-white p-5 w-full h-[25rem] overflow-hidden">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h2 className="text-xl font-semibold text-gray-900">Offers</h2>
@@ -220,7 +220,7 @@ export default function OfferPage() {
                   generated for the selected application.
                 </p>
               </div>
-              <div className="inline-flex items-center gap-2 rounded-full bg-amber-100 px-4 py-2 text-xs font-semibold text-amber-900">
+              <div className="inline-flex items-center gap-2 rounded-md bg-amber-100 px-4 py-2 text-xs font-semibold text-amber-900">
                 <Sparkles className="h-4 w-4" />
                 Smart offer generation
               </div>
@@ -229,7 +229,7 @@ export default function OfferPage() {
             {offersLoading ? (
               <div className="mt-6 text-sm text-slate-600">Loading offers…</div>
             ) : offersError ? (
-              <div className="mt-6 rounded-3xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+              <div className="mt-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
                 Unable to fetch offers.
               </div>
             ) : offers.length === 0 ? (
@@ -244,7 +244,7 @@ export default function OfferPage() {
                     <motion.div
                       key={offer.offer_id}
                       whileHover={{ y: -3 }}
-                      className="group flex min-w-[20rem] max-w-[20rem] flex-col rounded-3xl border border-slate-200 bg-zinc-950 p-5 text-white shadow-lg">
+                      className="group flex min-w-[20rem] max-w-[20rem] flex-col rounded-xl border border-slate-200 bg-zinc-950 p-5 text-white shadow-lg">
                       <div className="flex items-center justify-between gap-3">
                         <div>
                           <p className="font-semibold text-lg">
@@ -252,7 +252,7 @@ export default function OfferPage() {
                           </p>
                           <p className="text-sm text-slate-400">{offer.note}</p>
                         </div>
-                        <div className="rounded-full bg-amber-500 px-3 py-1 text-xs font-semibold text-black">
+                        <div className="rounded-xl bg-amber-500 px-3 py-1 text-xs font-semibold text-black">
                           {offer.ltv_percent}% LTV
                         </div>
                       </div>
@@ -279,7 +279,7 @@ export default function OfferPage() {
                             },
                           })
                         }
-                        className="mt-auto inline-flex w-full items-center justify-center gap-2 rounded-full bg-amber-500 px-4 py-3 text-sm font-semibold text-black transition group-hover:bg-amber-600">
+                        className="mt-auto inline-flex w-full items-center justify-center gap-2 rounded-xl bg-amber-500 px-4 py-3 text-sm font-semibold text-black transition group-hover:bg-amber-600">
                         <ClipboardList className="h-4 w-4" />
                         Select this offer
                       </button>

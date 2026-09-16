@@ -6,7 +6,7 @@ export default function CheckEligibility() {
   if (!state) {
     return (
       <div className="min-h-screen bg-gradient-to-r from-orange-300 to-amber-700 flex items-center justify-center px-6 py-10">
-        <div className="w-full max-w-xl rounded-[32px] border border-slate-200 bg-white p-10 text-center shadow-2xl">
+        <div className="w-full max-w-xl rounded-lg border border-slate-200 bg-white p-10 text-center shadow-2xl">
           <p className="text-sm uppercase tracking-[0.36em] text-amber-300">
             Eligibility result
           </p>
@@ -17,7 +17,7 @@ export default function CheckEligibility() {
           </p>
           <Link
             to="/"
-            className="mt-8 inline-flex rounded-full bg-amber-400 px-6 py-3 text-sm font-semibold text-slate-950 transition hover:bg-amber-300">
+            className="mt-8 inline-flex rounded-lg bg-amber-400 px-6 py-3 text-sm font-semibold text-slate-950 transition hover:bg-amber-300">
             Start again
           </Link>
         </div>
@@ -29,7 +29,7 @@ export default function CheckEligibility() {
 
   return (
     <div className="min-h-screen bg-gradient-to-r from-orange-300 to-amber-700 flex items-center justify-center px-6 py-10">
-      <div className="w-full max-w-3xl rounded-[32px] border border-slate-200 bg-white p-10 shadow-2xl text-slate-900">
+      <div className="w-full max-w-3xl rounded-xl border border-slate-200 bg-white mt-6 p-10 shadow-2xl text-slate-900">
         <div className="flex items-center justify-between gap-4">
           <div>
             <p className="text-sm uppercase tracking-[0.36em] font-semibold text-amber-600">
@@ -38,7 +38,7 @@ export default function CheckEligibility() {
             <h1 className="mt-4 text-4xl font-semibold">Your Loan Readiness</h1>
           </div>
           <div
-            className={`rounded-full px-7 py-3 text-lg font-semibold ${eligible ? "bg-emerald-500 text-white" : "bg-red-500 text-white"}`}>
+            className={`rounded-xl px-5 py-2 text-md font-semibold ${eligible ? "bg-emerald-500 text-white" : "bg-red-500 text-white"}`}>
             {eligible ? "Eligible" : "Not Eligible"}
           </div>
         </div>
@@ -50,7 +50,7 @@ export default function CheckEligibility() {
               this as a starting point to compare offers and complete your
               application.
             </p>
-            <div className="rounded-[28px] border border-slate-200 bg-white p-8 text-center text-slate-900">
+            <div className="rounded-lg border border-slate-200 bg-white p-8 text-center text-slate-900">
               <p className="text-sm uppercase tracking-[0.34em] font-semibold text-amber-500">
                 Estimated loan amount
               </p>
@@ -58,36 +58,31 @@ export default function CheckEligibility() {
                 ₹{amount_eligible?.toLocaleString()}
               </p>
             </div>
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-12 my-8 sm:grid-cols-2">
               <Link
                 to="/register"
-                className="rounded-full bg-amber-400 px-6 py-3 text-center font-semibold text-slate-950 transition hover:bg-amber-300">
+                className="rounded-xl bg-amber-400 px-6 py-3 text-center font-semibold text-slate-950 transition hover:bg-amber-300">
                 Register to Continue
               </Link>
               <Link
                 to="/"
-                className="rounded-full border border-slate-200 bg-white px-6 py-3 text-center font-semibold text-slate-900 transition hover:bg-white/10">
+                className="rounded-xl border border-slate-400 bg-white px-6 py-3 text-center font-semibold text-slate-900 transition hover:bg-white/10">
                 Check for other offers
               </Link>
             </div>
           </div>
         ) : (
-          <div className="mt-10 space-y-6 text-slate-300">
-            <p className="text-lg text-slate-500 leading-8 mt-10 mb-16">
+          <div className="mt-10 mb-6 space-y-16">
+            <p className="text-lg text-slate-500 leading-8">
               Your current profile does not meet the minimum criteria for a
               mortgage today. You can improve eligibility by increasing income,
               improving credit score, or adding a stronger collateral profile.
             </p>
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="text-center">
               <Link
                 to="/"
-                className="rounded-full bg-amber-400 px-6 py-3 text-center font-semibold text-slate-950 transition hover:bg-amber-300">
+                className="rounded-xl bg-amber-400 px-8 py-4 font-semibold transition hover:bg-amber-300">
                 Re-check eligibility
-              </Link>
-              <Link
-                to="/register"
-                className="rounded-full border border-slate-200 bg-white px-6 py-3 text-center font-semibold text-slate-900 transition hover:bg-white/10">
-                Learn More
               </Link>
             </div>
           </div>

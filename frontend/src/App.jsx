@@ -1,6 +1,6 @@
 // src/App.jsx
-import { Suspense, lazy } from "react";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { Suspense, lazy, useEffect, useState } from "react";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { Toaster } from "sonner";
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -18,6 +18,40 @@ const CheckEligibility = lazy(() => import("./pages/CheckEligibility"));
 const LoanApplicationPage = lazy(() => import("./pages/LoanApplicationPage"));
 const UploadDocument = lazy(() => import("./pages/UploadDocument"));
 const AssessApplication = lazy(() => import("./pages/AssessApplication"));
+
+function AdminProtectedRoute({ children }) {
+  const [checking, setChecking] = useState(() =>
+    Boolean(localStorage.getItem("admin_token")),
+  );
+  const [authorized, setAuthorized] = useState(false);
+
+  useEffect(() => {
+    const token = localStorage.getItem("admin_token");
+    if (!token) {
+      return;
+    }
+
+    fetch("http://localhost:8000/admin/me", {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then(async (response) => {
+        if (!response.ok) throw new Error("Invalid admin session");
+        return response.json();
+      })
+      .then(({ username }) => {
+        localStorage.setItem("admin_username", username);
+        setAuthorized(true);
+      })
+      .catch(() => {
+        localStorage.removeItem("admin_token");
+        localStorage.removeItem("admin_username");
+      })
+      .finally(() => setChecking(false));
+  }, []);
+
+  if (checking) return null;
+  return authorized ? children : <Navigate to="/admin" replace />;
+}
 
 export default function App() {
   return (
@@ -85,7 +119,14 @@ export default function App() {
             <Route path="/eligibility" element={<CheckEligibility />} />
             <Route path="*" element={<NotFound />} />
             <Route path="/admin" element={<AdminLoginPage />} />
-            <Route path="/admin-dashboard" element={<AdminDashboardPage />} />
+            <Route
+              path="/admin-dashboard"
+              element={
+                <AdminProtectedRoute>
+                  <AdminDashboardPage />
+                </AdminProtectedRoute>
+              }
+            />
           </Routes>
         </Suspense>
       </BrowserRouter>

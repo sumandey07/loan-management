@@ -42,7 +42,7 @@ export default function ChatWidget() {
 
       const botMessage = {
         sender: "bot",
-        text: data.response || "Sorry, I could not process that.",
+        text: data.response?.[0]?.text || "Sorry, I could not process that.",
       };
 
       setMessages((prev) => [...prev, botMessage]);
@@ -73,9 +73,9 @@ export default function ChatWidget() {
 
       {/* Chat Window */}
       {open && (
-        <div className="fixed bottom-6 right-6 w-100 h-[480px] bg-white rounded-2xl shadow-2xl border z-50 flex flex-col animate-fadeIn">
+        <div className="fixed bottom-6 right-6 w-100 h-[480px] bg-white rounded-lg shadow-2xl border z-50 flex flex-col animate-fadeIn">
           {/* Header */}
-          <div className="bg-sky-700 p-4 flex justify-between items-center rounded-t-2xl">
+          <div className="bg-sky-700 p-4 flex justify-between items-center rounded-t-lg">
             <span className="text-white font-semibold">AI Loan Assistant</span>
             <button onClick={() => setOpen(false)}>
               <XMarkIcon className="text-white w-6 h-6" />
@@ -91,13 +91,12 @@ export default function ChatWidget() {
                   msg.sender === "user" ? "justify-end" : "justify-start"
                 }`}>
                 <div
-                  className={`px-4 py-2 max-w-[75%] rounded-xl shadow text-sm ${
+                  className={`px-4 py-2 max-w-[75%] rounded-md shadow text-sm ${
                     msg.sender === "user"
                       ? "bg-sky-700 text-white rounded-br-none"
                       : "bg-white text-gray-800 border rounded-bl-none"
                   }`}>
                   {msg.sender === "bot" ? (
-                    // ✅ Render Markdown for bot messages
                     <ReactMarkdown
                       components={{
                         strong: ({ children }) => (
@@ -144,11 +143,11 @@ export default function ChatWidget() {
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKey}
               placeholder="Ask something..."
-              className="flex-1 border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
+              className="flex-1 border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
             />
             <button
               onClick={sendMessage}
-              className="bg-sky-700 text-white px-4 rounded-xl hover:bg-sky-800">
+              className="bg-sky-700 text-white px-4 rounded-md hover:bg-sky-800">
               <PaperAirplaneIcon className="w-5 h-5" />
             </button>
           </div>

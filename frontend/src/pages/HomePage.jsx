@@ -2,7 +2,6 @@ import { motion } from "framer-motion";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { FaPercent, FaUserCheck, FaUserTie } from "react-icons/fa";
 import familyImage from "../assets/family.png";
 
 export default function HomePage() {
@@ -70,26 +69,26 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-r from-orange-300 to-amber-700 text-white mt-12">
+    <div className="min-h-screen bg-gradient-to-r from-orange-300 to-amber-600 text-white mt-12">
       <div
-        className="relative overflow-hidden bg-[radial-gradient(circle_at_top_left,_rgba(251,191,36,0.25),_transparent_25%),radial-gradient(circle_at_bottom_right,_rgba(249,115,22,0.18),_transparent_30%)] bg-cover bg-center bg-no-repeat"
+        className="relative overflow-hidden bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: `url(${familyImage})` }}>
-        <div className="absolute inset-0 bg-slate-400/50" />
-        <div className="relative mx-auto max-w-7xl px-8 py-16 lg:px-4 h-[83vh]">
-          <div className="grid gap-10 md:gap-0 lg:grid-cols-[1.2fr_1fr] items-center pt-23">
+        <div className="absolute inset-0 bg-slate-800/10" />
+        <div className="relative mx-auto max-w-7xl px-8 py-8 lg:px-4 h-[83vh]">
+          <div className="grid gap-10 md:gap-0 lg:grid-cols-[1.1fr_1fr] items-center mt-36">
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7 }}
-              className="space-y-8">
+              className="space-y-6">
               <div className="max-w-xl">
-                <p className="text-sm uppercase font-semibold tracking-[0.32em] text-amber-300">
+                <p className="text-sm uppercase font-bold tracking-[0.32em]">
                   Mortgage intelligence
                 </p>
                 <h1 className="mt-4 text-4xl font-bold tracking-tight text-white sm:text-5xl">
                   Your Mortgage Journey, Simplified
                 </h1>
-                <p className="mt-6 font-semibold leading-7 text-white">
+                <p className="mt-6 font-bold leading-7 text-white">
                   Discover your mortgage readiness with our quick and easy
                   eligibility check. No more guesswork - just clear insights to
                   help you make informed decisions about your loan options
@@ -101,16 +100,16 @@ export default function HomePage() {
               initial={{ opacity: 0, scale: 0.97 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.7 }}
-              className="rounded-[32px] border border-slate-200 bg-white p-8 shadow-2xl text-slate-900 mt-16">
-              <p className="text-sm uppercase tracking-[0.32em] font-semibold text-amber-200">
-                Eligibility check
+              className="rounded-2xl border border-slate-200 bg-white p-7 shadow-2xl text-slate-900">
+              <p className="text-sm uppercase tracking-[0.32em] font-semibold text-amber-400">
+                Eligibility Check
               </p>
               <h2 className="mt-4 text-2xl font-semibold text-orange-300">
                 Check your eligibility for mortgage loan
               </h2>
 
-              <form onSubmit={checkEligibility} className="mt-12 grid gap-4">
-                <div className="grid gap-4 sm:grid-cols-3">
+              <form onSubmit={checkEligibility} className="mt-9 grid gap-5">
+                <div className="grid gap-5 lg:grid-cols-[1.4fr_1.6fr_1fr] sm:grid-cols-3">
                   <div>
                     <label className="sr-only" htmlFor="income">
                       Annual income
@@ -123,7 +122,7 @@ export default function HomePage() {
                         setIncome(e.target.value);
                         validateFields("income", e.target.value);
                       }}
-                      className={`w-full rounded-3xl border px-4 py-3 text-slate-950 focus:outline-none focus:ring-2 focus:ring-amber-400 ${errors.income ? "border-red-500" : "border-slate-300"}`}
+                      className={`w-full rounded-xl border px-4 py-3 text-slate-950 focus:outline-none focus:ring-2 focus:ring-amber-400 ${errors.income ? "border-red-500" : "border-slate-300"}`}
                       placeholder="Annual income"
                     />
                     <p
@@ -143,8 +142,8 @@ export default function HomePage() {
                         setCreditScore(e.target.value);
                         validateFields("creditScore", e.target.value);
                       }}
-                      className="w-full rounded-3xl border border-slate-300 bg-white px-4 py-3 text-slate-950 focus:outline-none focus:ring-2 focus:ring-amber-400">
-                      <option value="" className="">
+                      className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-550 focus:outline-none focus:ring-2 focus:ring-amber-400">
+                      <option value="" className="text-slate-400" disabled>
                         Credit score range
                       </option>
                       <option value="300">300-399</option>
@@ -171,7 +170,7 @@ export default function HomePage() {
                         setAge(e.target.value);
                         validateFields("age", e.target.value);
                       }}
-                      className={`w-full rounded-3xl border px-4 py-3 text-slate-950 focus:outline-none focus:ring-2 focus:ring-amber-400 ${errors.age ? "border-red-500" : "border-slate-300"}`}
+                      className={`w-2/3 rounded-xl border px-4 py-3 text-slate-950 focus:outline-none focus:ring-2 focus:ring-amber-400 ${errors.age ? "border-red-500" : "border-slate-300"}`}
                       placeholder="Age"
                     />
                     <p
@@ -192,7 +191,7 @@ export default function HomePage() {
                     !age ||
                     !creditScore
                   }
-                  className="mt-4 inline-flex w-full items-center justify-center rounded-full bg-amber-400 px-6 py-3 text-base font-semibold text-slate-950 transition hover:bg-amber-300 disabled:cursor-not-allowed disabled:opacity-50">
+                  className="mt-4 inline-flex w-full items-center justify-center rounded-xl bg-amber-400 px-6 py-3 text-base font-semibold text-slate-950 transition hover:bg-amber-300 disabled:cursor-not-allowed disabled:opacity-50">
                   {loading ? "Checking..." : "Check eligibility"}
                 </button>
               </form>
@@ -206,7 +205,7 @@ export default function HomePage() {
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="rounded-[30px] border border-slate-200 bg-white p-8 shadow-lg text-slate-900">
+            className="rounded-2xl border border-slate-200 bg-white p-8 shadow-lg text-slate-900">
             <p className="text-sm uppercase tracking-[0.32em] font-semibold text-amber-300">
               Mortgage clarity
             </p>
@@ -223,7 +222,7 @@ export default function HomePage() {
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="rounded-[30px] border border-slate-200 bg-white p-8 shadow-lg text-slate-900">
+            className="rounded-2xl border border-slate-200 bg-white p-8 shadow-lg text-slate-900">
             <p className="text-sm uppercase tracking-[0.32em] font-semibold text-amber-300">
               Competitive terms
             </p>
@@ -240,7 +239,7 @@ export default function HomePage() {
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="rounded-[30px] border border-slate-200 bg-white p-8 shadow-lg text-slate-900">
+            className="rounded-2xl border border-slate-200 bg-white p-8 shadow-lg text-slate-900">
             <p className="text-sm uppercase tracking-[0.32em] font-semibold text-amber-300">
               Expert support
             </p>
@@ -253,13 +252,13 @@ export default function HomePage() {
           </motion.div>
         </div>
       </section>
-      <div
+      <motion.div
         initial={{ opacity: 0, y: 30 }}
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.3 }}
         className="text-center shadow-lg font-semibold py-6 text-white text-base">
         Made with ❤️ by Suman Kumar Dey
-      </div>
+      </motion.div>
     </div>
   );
 }

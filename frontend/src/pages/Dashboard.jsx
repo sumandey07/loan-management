@@ -15,7 +15,7 @@ export default function Dashboard() {
   const [apps, setApps] = useState([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState(null);
-  const [selectedAppId, setSelectedAppId] = useState(null);
+  const [selectedAppId, setSelectedAppId] = useState("");
 
   useEffect(() => {
     if (!token) return;
@@ -104,7 +104,7 @@ export default function Dashboard() {
     <div className="min-h-screen bg-gradient-to-r from-orange-300 to-amber-700 flex justify-center px-4 py-8 mt-14">
       <div className="max-w-6xl w-full space-y-6">
         {/* Profile / header card */}
-        <div className="bg-white/95 rounded-2xl shadow-2xl p-6 flex justify-between items-center">
+        <div className="bg-white/95 rounded-md shadow-2xl p-6 flex justify-between items-center">
           <div>
             <h2 className="text-3xl font-bold text-gray-900 mt-4">
               Welcome, {fullName || "Bank Officer"}
@@ -116,7 +116,7 @@ export default function Dashboard() {
           </div>
 
           {latest?.id && (
-            <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 w-1/4 text-sm">
+            <div className="bg-amber-50 border border-amber-200 rounded-md px-4 py-3 w-1/4 text-sm">
               <p className="font-semibold text-amber-900 mb-1">
                 Latest Application
               </p>
@@ -126,7 +126,7 @@ export default function Dashboard() {
               <p>Status: {latest.status}</p>
               <p>Amount: {formatCurrency(latest.requested_amount)}</p>
               <button
-                className="mt-2 text-xs bg-amber-500 text-black px-3 py-1 rounded-full font-semibold"
+                className="mt-2 text-xs bg-amber-500 text-black px-3 py-1 rounded-md font-semibold"
                 onClick={() => handleContinue(latest.id)}>
                 Continue this application
               </button>
@@ -135,7 +135,7 @@ export default function Dashboard() {
         </div>
 
         {/* Draft and In-Progress Applications */}
-        <div className="bg-white/95 rounded-2xl shadow-2xl p-6">
+        <div className="bg-white/95 rounded-lg shadow-2xl p-6">
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-4">
             <div>
               <h3 className="text-xl font-semibold text-gray-900">
@@ -148,7 +148,7 @@ export default function Dashboard() {
             </div>
             <button
               onClick={() => navigate("/loan-application")}
-              className="text-xs bg-black text-white px-3 py-1.5 rounded-full font-semibold whitespace-nowrap">
+              className="text-xs bg-black text-white px-3 py-1.5 rounded-lg font-semibold whitespace-nowrap">
               + New Application
             </button>
           </div>
@@ -193,7 +193,7 @@ export default function Dashboard() {
                           </span>
                         </div>
                         <span
-                          className={`text-xs px-2 py-1 rounded-full whitespace-nowrap ${
+                          className={`text-xs px-2 py-1 rounded-md whitespace-nowrap ${
                             selectedApp.status === "approved"
                               ? "bg-green-100 text-green-900"
                               : selectedApp.status === "rejected"
@@ -290,7 +290,7 @@ export default function Dashboard() {
                   {selectedApp && (
                     <>
                       <button
-                        className="text-xs bg-amber-500 text-black px-3 py-1.5 rounded-full font-semibold hover:bg-amber-600 transition"
+                        className="text-xs bg-amber-500 text-black px-3 py-1.5 rounded-lg font-semibold hover:bg-amber-600 transition"
                         onClick={() => handleOffers(selectedApp.id)}>
                         View Offers
                       </button>

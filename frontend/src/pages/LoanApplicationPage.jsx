@@ -12,10 +12,10 @@ export default function LoanApplicationPage() {
   const [err, setErr] = useState(null);
   const [collateralType, setCollateralType] = useState("property");
   const [commonForm, setCommonForm] = useState({
-    requested_amount: "",
-    tenure_years: "",
-    credit_score: "",
-    existing_emi: "",
+    requested_amount: "50000",
+    tenure_years: "1",
+    credit_score: "300",
+    existing_emi: "0",
     annual_income: "",
     region: "",
   });
@@ -177,7 +177,7 @@ export default function LoanApplicationPage() {
   }, [editingAppId, isEdit, token]);
 
   return (
-    <div className="min-h-screen bg-linear-to-r from-orange-300 to-amber-700 flex justify-center items-center px-4 py-8 mt-8">
+    <div className="min-h-screen bg-linear-to-r from-orange-300 to-amber-700 flex justify-center items-center px-4 py-8 mt-10">
       <div className="bg-white/95 rounded-2xl shadow-2xl max-w-3xl w-full p-8">
         {isEdit ? (
           <h2 className="text-2xl font-bold text-gray-900 mb-2">
@@ -199,9 +199,9 @@ export default function LoanApplicationPage() {
             compute valuation and use this later for risk &amp; offers.
           </p>
         )}
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-7">
           {/* Collateral type + requested amount */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-[1fr_1.9fr_1fr] gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Collateral Type
@@ -222,6 +222,8 @@ export default function LoanApplicationPage() {
               <input
                 type="number"
                 name="requested_amount"
+                min={50000}
+                max={500000000}
                 value={commonForm.requested_amount}
                 onChange={(e) =>
                   setCommonForm({
@@ -234,8 +236,6 @@ export default function LoanApplicationPage() {
                 required
               />
             </div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Tenure (years)
@@ -251,6 +251,8 @@ export default function LoanApplicationPage() {
                 required
               />
             </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-[1fr_1.6fr_1.4fr] gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Credit Score (CIBIL)
@@ -258,8 +260,8 @@ export default function LoanApplicationPage() {
               <input
                 type="number"
                 name="credit_score"
-                min="300"
-                max="900"
+                min={300}
+                max={900}
                 step="1"
                 value={commonForm.credit_score}
                 onChange={handleCommonChange("credit_score")}
@@ -267,7 +269,7 @@ export default function LoanApplicationPage() {
                 className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-amber-400"
                 placeholder="e.g. 750"
               />
-              <p className="mt-2 text-xs text-slate-500">
+              <p className="pl-1 mt-2 text-xs text-slate-500">
                 Credit score must be between 300 and 900.
               </p>
             </div>
@@ -285,19 +287,17 @@ export default function LoanApplicationPage() {
                 placeholder="e.g. Gurgaon"
                 required
               />
-              <p className="mt-2 text-xs text-slate-500">
+              <p className="pl-1 mt-2 text-xs text-slate-500">
                 Use letters and spaces only.
               </p>
             </div>
-          </div>
-          {/* Existing EMI + income */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Existing Monthly EMI (₹)
               </label>
               <input
                 type="number"
+                min={0}
                 name="existing_emi"
                 value={commonForm.existing_emi}
                 onChange={handleCommonChange("existing_emi")}
@@ -306,6 +306,8 @@ export default function LoanApplicationPage() {
                 required
               />
             </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-[1fr_1.6fr] gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Annual Income (₹)
@@ -320,69 +322,67 @@ export default function LoanApplicationPage() {
                 required
               />
             </div>
+            {collateralType === "property" && (
+              <div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Property Size (sq ft)
+                  </label>
+                  <input
+                    type="number"
+                    name="size_sqft"
+                    value={propertyForm.size_sqft}
+                    onChange={handlePropertyChange("size_sqft")}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                    placeholder="e.g. 1200"
+                    required
+                  />
+                </div>
+              </div>
+            )}
+            {collateralType === "gold" && (
+              <div className="grid grid-cols-1 md:grid-cols-[1fr_1.5fr] gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Gold Purity
+                  </label>
+                  <select
+                    name="purity"
+                    defaultValue=""
+                    value={goldForm.purity}
+                    onChange={handleGoldChange("purity")}
+                    className="peer text-gray-700 text-sm text-black w-full border rounded-md px-3 py-2 focus:outline-none border-gray-400"
+                    required>
+                    <option value="" disabled>
+                      Select purity
+                    </option>
+                    <option value="22k">22k</option>
+                    <option value="24k">24k</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Gold Weight in Grams
+                  </label>
+                  <input
+                    type="number"
+                    name="gold_weight_grams"
+                    value={goldForm.gold_weight_grams}
+                    onChange={handleGoldChange("gold_weight_grams")}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                    placeholder="e.g. 12"
+                    required
+                  />
+                </div>
+              </div>
+            )}
           </div>
-          {/* Property-only fields */}
-          {collateralType === "property" && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Property Size (sq ft)
-                </label>
-                <input
-                  type="number"
-                  name="size_sqft"
-                  value={propertyForm.size_sqft}
-                  onChange={handlePropertyChange("size_sqft")}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-amber-400"
-                  placeholder="e.g. 1200"
-                  required
-                />
-              </div>
-            </div>
-          )}
-          {/* Gold-only fields */}
-          {collateralType === "gold" && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Gold Purity
-                </label>
-                <select
-                  name="purity"
-                  defaultValue=""
-                  value={goldForm.purity}
-                  onChange={handleGoldChange("purity")}
-                  className="peer text-gray-700 text-sm text-black w-full border rounded-md px-3 py-2 focus:outline-none border-gray-400"
-                  required>
-                  <option value="" disabled>
-                    Select purity
-                  </option>
-                  <option value="22k">22k</option>
-                  <option value="24k">24k</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Gold Weight in Grams
-                </label>
-                <input
-                  type="number"
-                  name="gold_weight_grams"
-                  value={goldForm.gold_weight_grams}
-                  onChange={handleGoldChange("gold_weight_grams")}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-amber-400"
-                  placeholder="e.g. 12"
-                  required
-                />
-              </div>
-            </div>
-          )}
           <div className="flex justify-between items-center">
             {err && <div className="text-sm text-red-600">Error: {err}</div>}
             <button
               type="submit"
               disabled={loading || !isFormValid}
-              className="ml-auto bg-amber-500 hover:bg-amber-600 text-black font-semibold px-5 py-2.5 rounded-full shadow-md transition disabled:opacity-60 disabled:cursor-not-allowed">
+              className="ml-auto bg-amber-500 hover:bg-amber-600 text-black font-semibold px-5 py-2.5 rounded-xl shadow-md transition disabled:opacity-60 disabled:cursor-not-allowed">
               {loading ? loadingLabel : actionLabel}
             </button>
           </div>
@@ -405,22 +405,22 @@ export default function LoanApplicationPage() {
             <div className="mt-4 flex flex-wrap gap-3">
               <button
                 onClick={() => navigate("/assess-application")}
-                className="bg-black text-white px-4 py-2 rounded-full text-xs font-semibold">
+                className="bg-black text-white px-4 py-2 rounded-lg text-xs font-semibold">
                 Assess Risk
               </button>
               <button
                 onClick={() => navigate("/offers")}
-                className="bg-white border border-amber-400 text-black px-4 py-2 rounded-full text-xs font-semibold">
+                className="bg-white border border-amber-400 text-black px-4 py-2 rounded-lg text-xs font-semibold">
                 View Offers
               </button>
               <button
                 onClick={() => navigate("/upload-document")}
-                className="bg-black text-white px-4 py-2 rounded-full text-xs font-semibold">
+                className="bg-black text-white px-4 py-2 rounded-lg text-xs font-semibold">
                 Upload Documents
               </button>
               <button
                 onClick={() => navigate("/dashboard")}
-                className="bg-amber-500 hover:bg-amber-600 text-black px-4 py-2 rounded-full text-xs font-semibold">
+                className="bg-amber-500 hover:bg-amber-600 text-black px-4 py-2 rounded-lg text-xs font-semibold">
                 Go to Profile
               </button>
             </div>

@@ -73,7 +73,7 @@ export default function LoginPage() {
           initial={{ opacity: 0, x: 40 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5 }}
-          className="bg-white rounded-2xl shadow-xl p-8 ml-12">
+          className="bg-white rounded-xl shadow-xl p-8 ml-12">
           <h3 className="text-2xl font-bold mb-2 text-gray-900">
             Login to your account
           </h3>

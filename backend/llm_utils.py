@@ -49,6 +49,28 @@ Return JSON only.
 """
 
 
+def _extract_text(content) -> str:
+    if isinstance(content, str):
+        return content
+
+    if isinstance(content, list):
+        parts = []
+
+        for item in content:
+            if isinstance(item, str):
+                parts.append(item)
+            elif isinstance(item, dict):
+                if item.get("type") == "text" and item.get("text"):
+                    parts.append(item["text"])
+
+        return "\n".join(parts)
+
+    if isinstance(content, dict):
+        return content.get("text", "")
+
+    return str(content)
+
+
 def _parse_llm_json(text: str) -> dict:
     cleaned = text.strip()
     if cleaned.startswith("```json"):
@@ -77,7 +99,7 @@ def _parse_llm_json(text: str) -> dict:
 def assess_risk_with_llm(payload: dict) -> dict:
     prompt = RISK_PROMPT.format(input_json=json.dumps(payload))
     resp = llm.invoke([{"role": "user", "content": prompt}])
-    text = resp.content
+    text = _extract_text(resp.content)
     try:
         return _parse_llm_json(text)
     except Exception as exc:
@@ -93,7 +115,7 @@ def assess_risk_with_llm(payload: dict) -> dict:
 def generate_offers_with_llm(payload: dict) -> dict:
     prompt = OFFER_PROMPT.format(input_json=json.dumps(payload))
     resp = llm.invoke([{"role": "user", "content": prompt}])
-    text = resp.content
+    text = _extract_text(resp.content)
     try:
         return _parse_llm_json(text)
     except Exception:

@@ -1,14 +1,23 @@
 from typing import Optional
 from datetime import datetime
 from typing import Optional, List
+from sqlalchemy import inspect, text
 from sqlmodel import SQLModel, Field, create_engine, Session, select
 from datetime import datetime
 from pydantic import BaseModel
 import os
 from zoneinfo import ZoneInfo
+from dotenv import load_dotenv
+
+load_dotenv()
 
 DB_FILE = "mortgage.db"
-DATABASE_URL = f"sqlite:///{DB_FILE}"
+DATABASE_URL = os.getenv("DATABASE_URL", f"sqlite:///{DB_FILE}")
+
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+psycopg://", 1)
+elif DATABASE_URL.startswith("postgresql://"):
+    DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+psycopg://", 1)
 
 ist = ZoneInfo("Asia/Kolkata")
 
@@ -17,7 +26,8 @@ def now_ist():
     return datetime.now(ist).strftime("%d-%m-%Y, %H:%M")
 
 
-engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
+engine = create_engine(DATABASE_URL, connect_args=connect_args, pool_pre_ping=True)
 
 
 class User(SQLModel, table=True):
@@ -67,7 +77,7 @@ class LoanApplication(SQLModel, table=True):
     llm_recommended_roi: Optional[float] = None
     llm_explanation: Optional[str] = None
     llm_reviewed_at: Optional[datetime] = None
-    llm_reviewed_by: Optional[str] = None
+    reviewed_by: Optional[str] = None
     rejection_reason: Optional[str] = None
 
 
@@ -191,7 +201,7 @@ class ApplicationOut(BaseModel):
     llm_recommended_roi: Optional[float] = None
     llm_explanation: Optional[str] = None
     llm_reviewed_at: Optional[datetime] = None
-    llm_reviewed_by: Optional[str] = None
+    reviewed_by: Optional[str] = None
     rejection_reason: Optional[str] = None
 
 
@@ -207,9 +217,22 @@ class AdminLoginIn(BaseModel):
 class AdminTokenResp(BaseModel):
     access_token: str
     token_type: str = "bearer"
+    username: str
 
 
 def init_db():
+    inspector = inspect(engine)
+    table_name = LoanApplication.__tablename__
+    if inspector.has_table(table_name):
+        columns = {column["name"] for column in inspector.get_columns(table_name)}
+        if "llm_reviewed_by" in columns and "reviewed_by" not in columns:
+            with engine.begin() as connection:
+                connection.execute(
+                    text(
+                        f'ALTER TABLE "{table_name}" '
+                        'RENAME COLUMN "llm_reviewed_by" TO "reviewed_by"'
+                    )
+                )
     SQLModel.metadata.create_all(engine)
     # if not os.path.exists(DB_FILE):
     #     SQLModel.metadata.create_all(engine)
