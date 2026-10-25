@@ -2,6 +2,7 @@
 node_modules/
 dist/
 venv/
+.venv/
 __pycache__/
 .vscode/
 *.db
