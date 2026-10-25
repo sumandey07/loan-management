@@ -7,3 +7,12 @@
 .hero-bg {
   background: linear-gradient(180deg, rgba(101, 141, 255, 0.06), rgba(101, 141, 255, 0.02));
 }
+
+.offers-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.offers-scrollbar::-webkit-scrollbar {
+  display: none;
+}

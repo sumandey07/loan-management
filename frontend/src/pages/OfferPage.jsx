@@ -1,9 +1,14 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { CreditCard, Sparkles, ArrowRight, ClipboardList } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  ClipboardList,
+  Sparkles,
+} from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useCurrentApplication } from "../hooks/useCurrentApplication";
 import { getUserApplicationNumber } from "../utils/applicationNumber";
@@ -43,6 +48,9 @@ export default function OfferPage() {
   const [selectedAppId, setSelectedAppId] = useState(
     currentAppId ? String(currentAppId) : "",
   );
+  const offersScrollerRef = useRef(null);
+  const [canScrollOffersLeft, setCanScrollOffersLeft] = useState(false);
+  const [canScrollOffersRight, setCanScrollOffersRight] = useState(false);
 
   const {
     data: appsData,
@@ -83,6 +91,27 @@ export default function OfferPage() {
     queryFn: () => fetchOffers(selectedAppId, token),
     enabled: Boolean(selectedAppId) && Boolean(token),
   });
+
+  useEffect(() => {
+    const scroller = offersScrollerRef.current;
+    if (!scroller) return undefined;
+
+    const updateScrollButtons = () => {
+      setCanScrollOffersLeft(scroller.scrollLeft > 0);
+      setCanScrollOffersRight(
+        scroller.scrollLeft + scroller.clientWidth < scroller.scrollWidth - 1,
+      );
+    };
+
+    updateScrollButtons();
+    scroller.addEventListener("scroll", updateScrollButtons);
+    window.addEventListener("resize", updateScrollButtons);
+
+    return () => {
+      scroller.removeEventListener("scroll", updateScrollButtons);
+      window.removeEventListener("resize", updateScrollButtons);
+    };
+  }, [offers.length, offersLoading]);
 
   if (appsLoading) {
     return (
@@ -214,7 +243,7 @@ export default function OfferPage() {
             </div>
           </div>
 
-          <div className="rounded-xl border border-slate-200 bg-white p-5 w-full h-[25rem] overflow-hidden">
+          <div className="rounded-xl border border-slate-200/70 bg-white/75 p-5 w-full h-100 overflow-hidden backdrop-blur-sm">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h2 className="text-xl font-semibold text-gray-900">Offers</h2>
@@ -241,54 +270,89 @@ export default function OfferPage() {
                 refresh.
               </div>
             ) : (
-              <div className="mt-6 h-[calc(100%-4rem)] overflow-x-auto overflow-y-hidden pb-2">
-                <div className="flex h-full gap-4">
-                  {offers.map((offer) => (
-                    <motion.div
-                      key={offer.offer_id}
-                      whileHover={{ y: -3 }}
-                      className="group flex min-w-[20rem] max-w-[20rem] flex-col rounded-xl border border-slate-200 bg-zinc-950 p-5 text-white shadow-lg">
-                      <div className="flex items-center justify-between gap-3">
-                        <div>
-                          <p className="font-semibold text-lg">
-                            Offer {offer.offer_id}
+              <div className="relative mt-6 h-[calc(100%-4rem)]">
+                <div
+                  ref={offersScrollerRef}
+                  className="offers-scrollbar h-full overflow-x-auto overflow-y-hidden">
+                  <div className="flex h-full gap-4">
+                    {offers.map((offer) => (
+                      <motion.div
+                        key={offer.offer_id}
+                        whileHover={{ y: -3 }}
+                        className="group flex min-w-[20rem] max-w-[20rem] flex-col rounded-xl border border-slate-200 bg-zinc-950 p-5 text-white shadow-lg">
+                        <div className="flex items-center justify-between gap-3">
+                          <div>
+                            <p className="font-semibold text-lg">
+                              Offer {offer.offer_id}
+                            </p>
+                            <p className="text-sm text-slate-400">
+                              {offer.note}
+                            </p>
+                          </div>
+                          <div className="rounded-xl bg-amber-500 px-3 py-1 text-xs font-semibold text-black">
+                            {offer.ltv_percent}% LTV
+                          </div>
+                        </div>
+
+                        <div className="mt-4 mb-7 space-y-2 text-sm text-slate-200">
+                          <p>Rate: {offer.interest_rate_annual}% p.a.</p>
+                          <p>Tenure: {offer.tenure_years} years</p>
+                          <p>
+                            EMI: ₹{Number(offer.monthly_emi).toLocaleString()}
                           </p>
-                          <p className="text-sm text-slate-400">{offer.note}</p>
+                          <p>
+                            Fees: ₹
+                            {Number(offer.processing_fee).toLocaleString()}
+                          </p>
                         </div>
-                        <div className="rounded-xl bg-amber-500 px-3 py-1 text-xs font-semibold text-black">
-                          {offer.ltv_percent}% LTV
-                        </div>
-                      </div>
 
-                      <div className="mt-4 space-y-2 text-sm text-slate-200 mb-7">
-                        <p>Rate: {offer.interest_rate_annual}% p.a.</p>
-                        <p>Tenure: {offer.tenure_years} years</p>
-                        <p>
-                          EMI: ₹{Number(offer.monthly_emi).toLocaleString()}
-                        </p>
-                        <p>
-                          Fees: ₹{Number(offer.processing_fee).toLocaleString()}
-                        </p>
-                      </div>
-
-                      <button
-                        onClick={() =>
-                          navigate("/upload-document", {
-                            state: {
-                              appId: selectedAppId,
-                              offers,
-                              selectedOfferId: offer.offer_id,
-                              from: "offers",
-                            },
-                          })
-                        }
-                        className="mt-auto inline-flex w-full items-center justify-center gap-2 rounded-xl bg-amber-500 px-4 py-3 text-sm font-semibold text-black transition group-hover:bg-amber-600">
-                        <ClipboardList className="h-4 w-4" />
-                        Select this offer
-                      </button>
-                    </motion.div>
-                  ))}
+                        <button
+                          onClick={() =>
+                            navigate("/upload-document", {
+                              state: {
+                                appId: selectedAppId,
+                                offers,
+                                selectedOfferId: offer.offer_id,
+                                from: "offers",
+                              },
+                            })
+                          }
+                          className="mt-auto inline-flex w-full items-center justify-center gap-2 rounded-xl bg-amber-500 px-4 py-3 text-sm font-semibold text-black transition group-hover:bg-amber-600">
+                          <ClipboardList className="h-4 w-4" />
+                          Select this offer
+                        </button>
+                      </motion.div>
+                    ))}
+                  </div>
                 </div>
+                {canScrollOffersLeft && (
+                    <button
+                      type="button"
+                      aria-label="Scroll offers left"
+                      onClick={() =>
+                        offersScrollerRef.current?.scrollBy({
+                          left: -320,
+                          behavior: "smooth",
+                        })
+                      }
+                      className="absolute left-2 top-1/2 z-10 -translate-y-1/2 rounded-full border border-white/70 bg-white/75 p-2 text-slate-800 shadow-lg backdrop-blur-sm transition hover:bg-white">
+                      <ArrowLeft className="h-5 w-5" />
+                    </button>
+                )}
+                {canScrollOffersRight && (
+                    <button
+                      type="button"
+                      aria-label="Scroll offers right"
+                      onClick={() =>
+                        offersScrollerRef.current?.scrollBy({
+                          left: 320,
+                          behavior: "smooth",
+                        })
+                      }
+                      className="absolute right-2 top-1/2 z-10 -translate-y-1/2 rounded-full border border-white/70 bg-white/75 p-2 text-slate-800 shadow-lg backdrop-blur-sm transition hover:bg-white">
+                      <ArrowRight className="h-5 w-5" />
+                    </button>
+                )}
               </div>
             )}
           </div>

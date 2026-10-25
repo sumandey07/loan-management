@@ -19,6 +19,99 @@ import { getUserApplicationNumber } from "../utils/applicationNumber";
 
 const KYC_BASE = "http://localhost:8000/kyc";
 
+const formatFileSize = (bytes) => {
+  if (!bytes) return "0 KB";
+  return `${Math.round(bytes / 1024)} KB`;
+};
+
+function DocUploadCard({
+  title,
+  docType,
+  file,
+  setFile,
+  uploaded,
+  uploadingDoc,
+  uploadDocument,
+}) {
+  const isUploading = uploadingDoc === docType;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="rounded-lg border border-gray-200 bg-white p-6">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <FileText className="h-5 w-5 text-amber-500" />
+          <h3 className="font-semibold text-slate-900">{title}</h3>
+        </div>
+        {uploaded && <CheckCircle2 className="h-5 w-5 text-emerald-500" />}
+      </div>
+
+      <div>
+        <input
+          id={`document-file-${docType}`}
+          type="file"
+          accept=".pdf,image/*"
+          onChange={(e) => setFile(e.target.files[0])}
+          className="peer sr-only"
+        />
+        <label
+          htmlFor={`document-file-${docType}`}
+          className="group mb-4 flex min-h-28 cursor-pointer items-center gap-4 rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-5 transition hover:border-amber-400 hover:bg-amber-50/50 peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-amber-500">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white text-amber-600 shadow-sm ring-1 ring-slate-200 transition group-hover:ring-amber-200">
+            <UploadCloud className="h-5 w-5" />
+          </span>
+          <span className="min-w-0 flex-1">
+            {file ? (
+              <>
+                <span className="block truncate text-sm font-semibold text-slate-900">
+                  {file.name}
+                </span>
+                <span className="mt-1 block text-xs text-slate-500">
+                  {formatFileSize(file.size)} · Ready to upload
+                </span>
+              </>
+            ) : (
+              <>
+                <span className="block text-sm font-semibold text-slate-800">
+                  Choose a file
+                </span>
+                <span className="mt-1 block text-xs text-slate-500">
+                  PDF or image
+                </span>
+              </>
+            )}
+          </span>
+          <span className="shrink-0 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm transition group-hover:border-amber-300 group-hover:text-amber-700">
+            Browse
+          </span>
+        </label>
+        <button
+          type="button"
+          onClick={() => uploadDocument(docType, file)}
+          disabled={!file || isUploading}
+          className="w-full rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-black hover:bg-amber-600 disabled:opacity-60">
+          {isUploading ? "Uploading..." : uploaded ? `Update ${title}` : `Upload ${title}`}
+        </button>
+      </div>
+      {uploaded && (
+        <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 mt-6">
+          <p className="text-sm text-emerald-900">
+            <strong className="break-words">
+              {uploaded.display_filename || uploaded.filename}
+            </strong>
+            <br />
+            <span className="text-xs text-emerald-700">
+              {formatFileSize(uploaded.size_bytes)}
+            </span>
+          </p>
+        </div>
+      )}
+    </motion.div>
+  );
+}
+
 const fetchMyApplications = async (token) => {
   const res = await fetch("http://localhost:8000/applications/mine", {
     headers: { Authorization: `Bearer ${token}` },
@@ -403,65 +496,6 @@ export default function UploadDocumentNew() {
     }
   };
 
-  // ============ Render Helpers ============
-  const formatFileSize = (bytes) => {
-    if (!bytes) return "0 KB";
-    return `${Math.round(bytes / 1024)} KB`;
-  };
-
-  const DocUploadCard = ({ title, docType, file, setFile, uploaded }) => {
-    const isUploading = uploadingDoc === docType;
-
-    return (
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="rounded-lg border border-gray-200 bg-white p-6">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <FileText className="h-5 w-5 text-amber-500" />
-            <h3 className="font-semibold text-slate-900">{title}</h3>
-          </div>
-          {uploaded && <CheckCircle2 className="h-5 w-5 text-emerald-500" />}
-        </div>
-
-        <div>
-          <input
-            type="file"
-            accept=".pdf,image/*"
-            onChange={(e) => setFile(e.target.files[0])}
-            className="mb-3 w-full"
-          />
-          {file && (
-            <div className="mb-3 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
-              Selected file: <span className="font-semibold break-all">{file.name}</span>
-            </div>
-          )}
-          <button
-            type="button"
-            onClick={() => uploadDocument(docType, file)}
-            disabled={!file || isUploading}
-            className="w-full rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-black hover:bg-amber-600 disabled:opacity-60">
-            {isUploading ? "Uploading..." : uploaded ? `Update ${title}` : `Upload ${title}`}
-          </button>
-        </div>
-        {uploaded && (
-          <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 mt-6">
-            <p className="text-sm text-emerald-900">
-              <strong className="break-words">
-                {uploaded.display_filename || uploaded.filename}
-              </strong>
-              <br />
-              <span className="text-xs text-emerald-700">
-                {formatFileSize(uploaded.size_bytes)}
-              </span>
-            </p>
-          </div>
-        )}
-      </motion.div>
-    );
-  };
-
   // ============ Loading & Error States ============
   if (isLoading) {
     return (
@@ -590,6 +624,8 @@ export default function UploadDocumentNew() {
                       file={salarySlipFile}
                       setFile={setSalarySlipFile}
                       uploaded={uploadedDocs.salary_slip}
+                      uploadingDoc={uploadingDoc}
+                      uploadDocument={uploadDocument}
                     />
                     <DocUploadCard
                       title="Bank Documents"
@@ -597,6 +633,8 @@ export default function UploadDocumentNew() {
                       file={bankStatementFile}
                       setFile={setBankStatementFile}
                       uploaded={uploadedDocs.bank_statement}
+                      uploadingDoc={uploadingDoc}
+                      uploadDocument={uploadDocument}
                     />
                     <DocUploadCard
                       title="Property/Gold Doc"
@@ -604,6 +642,8 @@ export default function UploadDocumentNew() {
                       file={propertyOrGoldFile}
                       setFile={setPropertyOrGoldFile}
                       uploaded={uploadedDocs.property_gold}
+                      uploadingDoc={uploadingDoc}
+                      uploadDocument={uploadDocument}
                     />
                   </div>
                   <button
